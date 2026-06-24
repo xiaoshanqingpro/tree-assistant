@@ -1,8 +1,6 @@
 node_modules/
-android/.gradle/
-android/build/
-android/app/build/
-android/local.properties
+android/
+www/
 *.apk
 *.aab
 __pycache__/
