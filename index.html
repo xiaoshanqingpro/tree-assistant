@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover,maximum-scale=1.0">
+<meta name="theme-color" content="#3d7a54">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="树木学冲刺">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<title>树木学 v1.5.1</title>
+<style>
+:root{--g9:#1a3c2a;--g8:#2d5a3f;--g7:#3d7a54;--g6:#4a9a67;--g5:#5cb878;--g0:#edf7f0;--gold:#c8963e;--w:#fff;--t:#2c3e2d;--tl:#5a6b5c;--red:#c0392b;--r:16px;--rs:10px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;background:linear-gradient(160deg,#e8f0e9,#d4e8d9 30%,#c8e0cf 60%,#e8f0e9);color:var(--t);line-height:1.55;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.app{display:flex;flex-direction:column;height:100dvh;max-width:520px;margin:0 auto;overflow:hidden}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:var(--g7);color:white;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:10}
+.topbar .title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:4px}
+.topbar .ver{font-size:9px;opacity:.55;font-weight:400;margin-left:4px}
+.menu-btn{width:36px;height:36px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+.tabs{display:flex;flex-shrink:0;background:var(--w);border-bottom:2px solid #eee}
+.tab{flex:1;padding:10px 6px;border:none;background:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:center;transition:all .2s;color:var(--tl);position:relative}
+.tab.on{color:var(--g7)}.tab.on::after{content:'';position:absolute;bottom:-2px;left:10%;right:10%;height:3px;background:var(--g7);border-radius:2px}
+
+.stats-row{display:flex;gap:4px;padding:6px 10px;flex-shrink:0;justify-content:center;background:rgba(255,255,255,.4)}
+.stats-row .st{background:var(--w);border-radius:16px;padding:4px 12px;font-size:11px;font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.05);display:flex;align-items:center;gap:3px}
+.stats-row .st b{font-size:14px}.st.ok b{color:var(--g6)}.st.rv b{color:#c62828}.st.cn b{color:var(--g7)}
+
+.card-area{flex:1;display:flex;flex-direction:column;padding:8px 10px;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
+.card-area::-webkit-scrollbar{display:none}
+
+.flashcard{flex:0 1 auto;align-self:stretch;display:flex;flex-direction:column;position:relative;min-height:200px;max-height:72vh;border-radius:var(--r);overflow:hidden;transition:box-shadow .2s,border-color .2s;margin:auto 0}
+.flashcard.correct{border:3px solid #4caf50;box-shadow:0 0 28px rgba(76,175,80,.45)}
+.flashcard.wrong{border:3px solid #ef5350;box-shadow:0 0 28px rgba(239,83,80,.45)}
+
+.card-face{flex:1;border-radius:var(--r);padding:16px 14px;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;border:3px solid transparent;max-height:70vh}
+.card-face::-webkit-scrollbar{display:none}.card-face.hidden{display:none!important}
+.front{background:linear-gradient(160deg,#fefefd,#faf8f2 50%,#f7f3e8);border-color:#e8dfcc;cursor:pointer}
+.back{background:linear-gradient(160deg,#f8faf7,#eef5ef 50%,#e3efe4);border-color:#c8dcc8;cursor:pointer}
+
+.feedback-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;pointer-events:none;opacity:0;z-index:5;transition:opacity .12s}
+.feedback-ring.good{background:rgba(76,175,80,.88);color:white}.feedback-ring.show{opacity:1}.feedback-ring.bad{background:rgba(239,83,80,.88);color:white}
+
+.qtype-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;margin-bottom:3px;align-self:flex-start}
+.bt-noun{background:#e8f5e9;color:#2e7d32}.bt-fill{background:#e3f2fd;color:#1565c0}.bt-choice{background:#fff3e0;color:#e65100}.bt-judge{background:#fce4ec;color:#c62828}.bt-qa{background:#f3e5f5;color:#6a1b9a}
+.ch-badge{font-size:10px;color:var(--tl);margin-bottom:6px}
+.qtext{font-size:16px;font-weight:600;line-height:1.55;margin:4px 0;flex-shrink:0}
+.opts{margin-top:8px;display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.opt-btn{padding:10px 14px;border-radius:10px;border:2px solid #e0e0e0;font-size:13px;cursor:pointer;background:white;text-align:left;font-family:inherit;line-height:1.4;color:var(--t);transition:all .15s;display:flex;align-items:flex-start;gap:8px}
+.opt-btn:active{transform:scale(.97)}
+.opt-btn .ol{font-weight:700;flex-shrink:0;width:20px;height:20px;border-radius:50%;border:2px solid #ccc;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .15s}
+.opt-btn.sel{border-color:var(--g6);background:#f0faf3}.opt-btn.sel .ol{border-color:var(--g6);background:var(--g6);color:white}
+.opt-btn.rc{border-color:#4caf50!important;background:#e8f5e9!important}.opt-btn.rc .ol{border-color:#4caf50!important;background:#4caf50!important;color:white!important}
+.opt-btn.rw{border-color:#ef5350!important;background:#fce4ec!important}.opt-btn.rw .ol{border-color:#ef5350!important;background:#ef5350!important;color:white!important}
+.opt-btn.rn{border-color:#ddd!important;background:#f5f5f5!important;opacity:.4!important}
+.opt-btn.disabled{pointer-events:none}
+
+.hint{font-size:11px;color:var(--g6);font-weight:500;text-align:center;margin-top:auto;padding-top:6px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,to{opacity:.4}50%{opacity:1}}
+
+.a-label{font-size:11px;font-weight:700;color:var(--g7);border-bottom:2px solid var(--g3);padding-bottom:5px;margin-bottom:8px;flex-shrink:0}
+.a-text{font-size:14px;line-height:1.7;color:var(--t);flex:1;min-height:0;overflow-y:auto}.a-text strong{color:var(--g8)}
+.a-page{display:block;margin-top:8px;padding:8px 12px;background:var(--g0);border-radius:8px;font-size:12px;color:var(--g7);font-weight:600}
+.a-hint{font-size:10px;color:var(--tl);text-align:center;margin-top:auto;padding-top:8px;font-style:italic;flex-shrink:0}
+
+.qa-area{display:flex;flex-direction:column;gap:8px;margin-top:10px;flex-shrink:0}
+.qa-ta{width:100%;min-height:90px;padding:10px 12px;border:2px solid #ddd;border-radius:10px;font-size:13px;font-family:inherit;line-height:1.6;resize:vertical;color:var(--t);background:var(--w)}
+.qa-ta:focus{outline:none;border-color:var(--g6);box-shadow:0 0 0 3px rgba(74,154,103,.15)}
+.qa-sub{padding:8px 16px;border:none;border-radius:20px;background:var(--g6);color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;align-self:flex-end}
+.qa-sc{display:none;padding:10px;border-radius:8px;margin-top:6px;font-size:12px;line-height:1.6}
+.qa-sc.show{display:block}.qa-hit{color:#2e7d32;font-weight:600}.qa-miss{color:#c62828;font-weight:600}
+.qa-bar-outer{height:6px;background:#eee;border-radius:3px;margin:6px 0;overflow:hidden}.qa-bar-inner{height:100%;border-radius:3px;transition:width .5s}
+.fill-blanks{display:flex;flex-direction:column;gap:8px;margin-top:8px;flex-shrink:0}
+.fill-row{display:flex;align-items:center;gap:8px}
+.fill-num{font-size:12px;font-weight:700;color:var(--g7);min-width:24px}
+.fill-inp{flex:1;padding:8px 12px;border:2px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;background:var(--w);color:var(--t)}
+.fill-inp:focus{outline:none;border-color:var(--g6)}
+.fill-inp.ok{border-color:#4caf50!important;background:#e8f5e9!important}
+.fill-inp.bad{border-color:#ef5350!important;background:#fce4ec!important}
+.fill-check{padding:8px 16px;border:none;border-radius:20px;background:var(--g6);color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;align-self:flex-end;margin-top:6px}
+.fill-score{display:none;padding:8px;border-radius:8px;margin-top:6px;font-size:12px;line-height:1.6}
+.fill-score.show{display:block}
+
+.actions{display:flex;gap:7px;padding:8px 10px;flex-shrink:0;justify-content:center;background:rgba(255,255,255,.5);flex-wrap:wrap}
+.btn{padding:10px 16px;border:none;border-radius:22px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;display:flex;align-items:center;gap:4px;box-shadow:0 2px 8px rgba(0,0,0,.08);transition:all .15s}
+.btn:active{transform:scale(.93)}.btn:disabled{opacity:.35;pointer-events:none}
+.btn-ok{background:linear-gradient(135deg,#4caf50,#43a047);color:white;flex:1}
+.btn-no{background:linear-gradient(135deg,#ef5350,#e53935);color:white;flex:1}
+.btn-next{background:var(--w);color:var(--tl);border:1.5px solid #ddd}
+.btn-rand{background:linear-gradient(135deg,var(--gold),#b8862d);color:white}
+
+/* drawer */
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:99;opacity:0;pointer-events:none;transition:opacity .3s}
+.overlay.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:86vw;max-width:360px;background:var(--w);z-index:100;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,0,1);display:flex;flex-direction:column;box-shadow:-4px 0 32px rgba(0,0,0,.2)}
+.drawer.open{transform:translateX(0)}
+.drawer-head{background:linear-gradient(135deg,var(--g8),var(--g6));color:white;padding:24px 18px 16px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.drawer-head h3{font-size:16px}
+.drawer-close{width:34px;height:34px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:white;font-size:18px;cursor:pointer}
+.drawer-body{flex:1;overflow-y:auto;padding:0 12px 16px;-webkit-overflow-scrolling:touch}
+
+/* Drawer sections & nav buttons */
+.dr-section{margin-top:8px}
+.dr-section-title{padding:8px 12px;background:var(--g0);border-radius:8px;font-size:12px;font-weight:600;color:var(--g7);cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.dr-section-title .arrow{transition:transform .3s;font-size:10px}
+.dr-section-title.open .arrow{transform:rotate(90deg)}
+.dr-section-body{display:none;padding-top:6px}
+.dr-section-body.open{display:block}
+
+.dr-nav-btn{display:block;width:100%;padding:8px 12px;border:none;border-radius:8px;background:white;font-size:12px;text-align:left;cursor:pointer;font-family:inherit;margin-bottom:3px;font-weight:500;color:var(--t);box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s}
+.dr-nav-btn:active{background:var(--g0);transform:scale(.98)}
+.dr-nav-btn.active{border-left:3px solid var(--g6);background:var(--g0);color:var(--g7)}
+.dr-nav-btn .icon{margin-right:6px}
+.dr-nav-btn.warn{color:#c62828;font-weight:600}
+
+/* Filter chips inside drawer */
+.dr-chips{display:flex;flex-wrap:wrap;gap:4px;padding:4px 0}
+.dr-chip{padding:3px 10px;border-radius:12px;border:1.5px solid #ddd;font-size:10px;cursor:pointer;background:white;font-weight:500;font-family:inherit}
+.dr-chip.on{background:var(--g6);color:white;border-color:var(--g6)}
+
+.dr-stats{display:flex;gap:6px;padding:6px 0}
+.dr-st{flex:1;text-align:center;padding:8px 6px;border-radius:var(--rs);background:var(--g0)}
+.dr-st .num{font-size:18px;font-weight:700}.dr-st .lbl{font-size:10px;color:var(--tl)}
+.dr-st.ok .num{color:#2e7d32}.dr-st.no .num{color:#c62828}.dr-st.td .num{color:var(--t)}
+.dr-progress{padding:0 0 8px}.dr-progress .bar-outer{height:5px;background:#ddd;border-radius:3px;overflow:hidden}
+.dr-progress .bar-inner{height:100%;background:linear-gradient(90deg,var(--g5),var(--g6));border-radius:3px;transition:width .5s}
+
+.q-nav-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
+.q-nav-btn{padding:6px 8px;border-radius:6px;border:1.5px solid #ddd;font-size:10px;cursor:pointer;background:white;text-align:left;font-family:inherit;line-height:1.3;display:flex;align-items:center;gap:4px}
+.q-nav-btn .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:#ddd}
+.q-nav-btn .dot.ok{background:#4caf50}.q-nav-btn .dot.no{background:#ef5350}.q-nav-btn .dot.cur{background:var(--g6);box-shadow:0 0 0 3px rgba(74,154,103,.3)}
+.q-nav-btn.current{border-color:var(--g6);background:var(--g0)}
+
+/* viewer */
+.vwr-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:300;display:none;flex-direction:column}
+.vwr-overlay.open{display:flex}
+.vwr-head{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;color:white;flex-shrink:0}
+.vwr-close{width:36px;height:36px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:white;font-size:20px;cursor:pointer}
+.vwr-body{flex:1;overflow-y:auto;padding:16px;color:white;-webkit-overflow-scrolling:touch}
+
+.page-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+.page-tbl td,.page-tbl th{padding:5px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,.15)}
+.page-tbl th{background:rgba(255,255,255,.1);color:white;font-weight:600;position:sticky;top:0}
+
+.fab{position:fixed;bottom:24px;right:16px;width:52px;height:52px;border:none;border-radius:50%;background:linear-gradient(135deg,var(--g7),var(--g6));color:white;font-size:22px;cursor:pointer;z-index:50;box-shadow:0 4px 20px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.fab:active{transform:scale(.9)}
+@media(max-width:480px){
+  .card-face{padding:12px 10px}.qtext{font-size:14px}.opt-btn{font-size:12px;padding:8px 10px}.a-text{font-size:13px}.btn{padding:9px 12px;font-size:11px}
+  .stats-row{padding:4px 6px;gap:3px}.stats-row .st{padding:3px 8px;font-size:10px}.stats-row .st b{font-size:12px}
+  .topbar{padding:5px 10px}.topbar .title{font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="topbar">
+  <div class="title">树木学·期末冲刺<span class="ver">v1.5.1</span></div>
+  <button class="menu-btn" onclick="openDrawer()">&#9776;</button>
+</div>
+
+<div class="stats-row" id="statsRow">
+  <div class="st"><b id="stRemain">-</b>剩余</div>
+  <div class="st cn"><b id="stCorrect">0</b>正确</div>
+  <div class="st ok"><b id="stAcc">-</b>正确率</div>
+  <div class="st rv"><b id="stReview">0</b>需复习</div>
+</div>
+
+<div class="card-area" id="cardArea">
+  <div class="flashcard" id="flashcard">
+    <div class="card-face front" id="frontFace" onclick="onFrontTap(event)">
+      <span class="qtype-badge" id="qtBadge"></span>
+      <span class="ch-badge" id="chBadge"></span>
+      <div class="qtext" id="qtext"></div>
+      <div class="opts" id="optsBox"></div>
+      <div class="hint" id="hintLine">点击卡片 / 按空格 查看答案</div>
+      <div class="qa-area" id="qaArea" style="display:none">
+        <textarea class="qa-ta" id="qaTA" placeholder="在此输入你的答案..."></textarea>
+        <button class="qa-sub" onclick="submitQA(event)">提交作答</button>
+        <div class="qa-sc" id="qaSc"></div>
+      </div>
+      <div class="fill-blanks" id="fillBlanks" style="display:none"></div>
+      <button class="fill-check" id="fillCheck" style="display:none" onclick="checkFills(event)">提交填空</button>
+      <div class="fill-score" id="fillScore"></div>
+    </div>
+    <div class="card-face back hidden" id="backFace" onclick="onBackTap(event)">
+      <div class="a-label">参考答案</div>
+      <div class="a-text" id="aText"></div>
+      <span class="a-page" id="aPage" style="display:none"></span>
+      <div class="a-hint">点击卡片 / 按空格 返回</div>
+    </div>
+    <div class="feedback-ring" id="fbRing"></div>
+  </div>
+</div>
+
+<div class="actions" id="actionsBar">
+  <button class="btn btn-ok" id="btnOk" disabled>答对了</button>
+  <button class="btn btn-no" id="btnNo" disabled>需复习</button>
+  <button class="btn btn-next" id="btnNext">下一题</button>
+  <button class="btn btn-rand" id="btnRand">随机</button>
+</div>
+
+
+<button class="fab" onclick="openDrawer()">&#9776;</button>
+</div><!-- /app -->
+
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head"><h3>学习导航</h3><button class="drawer-close" onclick="closeDrawer()">&times;</button></div>
+  <div class="drawer-body">
+
+    <div class="dr-stats">
+      <div class="dr-st ok"><div class="num" id="dsOk">0</div><div class="lbl">已掌握</div></div>
+      <div class="dr-st no"><div class="num" id="dsNo">0</div><div class="lbl">需复习</div></div>
+      <div class="dr-st td"><div class="num" id="dsTodo">0</div><div class="lbl">未作答</div></div>
+    </div>
+    <div class="dr-progress"><span style="font-size:10px;color:var(--tl)">进度 <b id="dsPct">0%</b></span>
+      <div class="bar-outer"><div class="bar-inner" id="dsBar" style="width:0%"></div></div>
+    </div>
+
+    <!-- Quick actions -->
+    <button class="dr-nav-btn" id="drExam"><span class="icon">&#128220;</span> 模拟考试（随机组卷）</button>
+    <button class="dr-nav-btn warn" id="drReviewWrong" style="display:none"><span class="icon">&#128260;</span> 只练错题</button>
+    <button class="dr-nav-btn" id="drShuffle"><span class="icon">&#127922;</span> 随机全部（重置进度）</button>
+
+    <!-- 题型导航 -->
+    <div class="dr-section" id="drSecType">
+      <div class="dr-section-title open" onclick="drToggle('drSecType')">题型导航 <span class="arrow">&#9660;</span></div>
+      <div class="dr-section-body open" id="drSecTypeBody">
+        <div class="dr-chips" id="drTypeChips"></div>
+      </div>
+    </div>
+
+    <!-- 章节导航 -->
+    <div class="dr-section" id="drSecChap">
+      <div class="dr-section-title" onclick="drToggle('drSecChap')">章节导航 <span class="arrow">&#9654;</span></div>
+      <div class="dr-section-body" id="drSecChapBody">
+        <div class="q-nav-grid" id="dsChapters"></div>
+      </div>
+    </div>
+
+    <!-- 题库（默认收起） -->
+    <div class="dr-section" id="drSecBank">
+      <div class="dr-section-title" onclick="drToggle('drSecBank')">全部题目 <span style="font-size:10px;color:var(--tl);font-weight:400" id="drBankCnt"></span> <span class="arrow">&#9654;</span></div>
+      <div class="dr-section-body" id="drSecBankBody">
+        <div class="q-nav-grid" id="dsAllQ"></div>
+      </div>
+    </div>
+
+    <!-- 工具 -->
+    <div class="dr-section" id="drSecTools">
+      <div class="dr-section-title" onclick="drToggle('drSecTools')">工具 <span class="arrow">&#9654;</span></div>
+      <div class="dr-section-body" id="drSecToolsBody">
+        <button class="dr-nav-btn" id="drPageTable"><span class="icon">&#128214;</span> 课本页码对照表 (36科)</button>
+        <button class="dr-nav-btn" id="drKeys"><span class="icon">&#128221;</span> 检索表练习</button>
+        <button class="dr-nav-btn" id="drReset"><span class="icon">&#128260;</span> 重置进度</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="vwr-overlay" id="vwrOverlay">
+  <div class="vwr-head"><span id="vwrTitle"></span><button class="vwr-close" onclick="closeViewer()">&times;</button></div>
+  <div class="vwr-body" id="vwrBody"></div>
+</div>
+
+<script>
+var QDATA = [{"id": 0, "type": "名词解释", "chapter": "总论-裸子植物", "question": "种", "answer": "种是分类学的基本单位，它是由一群形态类似的群体所组成，来自共同的祖先，并繁衍出类似的后代。", "options": "", "category": "名词解释"}, {"id": 1, "type": "名词解释", "chapter": "总论-裸子植物", "question": "双名法", "answer": "瑞典人林奈创立的生物命名方法，一个完整的种名（学名）由三部分构成，即属名+种加词+命名人（常缩写）。", "options": "", "category": "名词解释"}, {"id": 2, "type": "名词解释", "chapter": "总论-裸子植物", "question": "替代分布", "answer": "两个类似类群，由于分布上的间断，各自占有分离的分布区域。", "options": "", "category": "名词解释"}, {"id": 3, "type": "名词解释", "chapter": "总论-裸子植物", "question": "生物学特性", "answer": "树木的生长发育规律（个体发育）及生长周期各阶段的性状表现。", "options": "", "category": "名词解释"}, {"id": 4, "type": "名词解释", "chapter": "总论-裸子植物", "question": "生态学特性", "answer": "树木在系统发育过程中形成的对环境条件的要求和适应性。", "options": "", "category": "名词解释"}, {"id": 5, "type": "名词解释", "chapter": "总论-裸子植物", "question": "球花", "answer": "裸子植物繁殖器官，即孢子叶球，单性，分雄球花（小孢子叶球）和雌球花（大孢子叶球）。", "options": "", "category": "名词解释"}, {"id": 6, "type": "名词解释", "chapter": "总论-裸子植物", "question": "珠鳞", "answer": "松柏纲植物雌球花上特化的大孢子叶，为鳞片状结构，腹面基部多着生胚珠。", "options": "", "category": "名词解释"}, {"id": 7, "type": "名词解释", "chapter": "总论-裸子植物", "question": "球果", "answer": "裸子植物由雌球花发育形成的繁殖器官，由种鳞（珠鳞发育成）和苞鳞着生在中轴上构成。", "options": "", "category": "名词解释"}, {"id": 8, "type": "名词解释", "chapter": "总论-裸子植物", "question": "珠座", "answer": "银杏科雌球花上特化的大孢子叶，呈盘状，顶端长胚珠。", "options": "", "category": "名词解释"}, {"id": 9, "type": "名词解释", "chapter": "总论-裸子植物", "question": "套被", "answer": "罗汉松科雌球花上特化的大孢子叶，呈肉质、囊状或杯状，包裹胚珠，发育为假种皮。", "options": "", "category": "名词解释"}, {"id": 10, "type": "填空题", "chapter": "总论-裸子植物", "question": "树木按生活型主要分为哪三类？木质藤本又分为哪两类？", "answer": "乔木、灌木和木质藤本；木质藤本又分为缠绕藤本和攀援藤本", "options": "", "category": "填空题"}, {"id": 11, "type": "填空题", "chapter": "总论-裸子植物", "question": "恩格勒系统认为哪一类是被子植物最原始类群？该系统中哪个科排在被子植物第一位？", "answer": "柔荑花序类；木麻黄科排在被子植物第一位", "options": "", "category": "填空题"}, {"id": 12, "type": "填空题", "chapter": "总论-裸子植物", "question": "哈钦松系统认为花起源于什么？该系统中哪个科排在被子植物第一位？", "answer": "已灭绝的裸子植物本内苏铁目；木兰科排在被子植物第一位", "options": "", "category": "填空题"}, {"id": 13, "type": "填空题", "chapter": "总论-裸子植物", "question": "现代被子植物分类的主流系统是什么？", "answer": "APG系统", "options": "", "category": "填空题"}, {"id": 14, "type": "填空题", "chapter": "总论-裸子植物", "question": "植物分类依据主要有哪6个方面？", "answer": "形态学、解剖学、孢粉学、细胞学、生物化学和分子系统学", "options": "", "category": "填空题"}, {"id": 15, "type": "填空题", "chapter": "总论-裸子植物", "question": "植物分类的基本等级有哪6个？最常用的3个等级是什么？", "answer": "门、纲、目、科、属、种；最常用：科、属、种", "options": "", "category": "填空题"}, {"id": 16, "type": "填空题", "chapter": "总论-裸子植物", "question": "种下等级中，ssp.表示什么？var.表示什么？f.表示什么？", "answer": "ssp.表示亚种；var.表示变种；f.表示变型", "options": "", "category": "填空题"}, {"id": 17, "type": "填空题", "chapter": "总论-裸子植物", "question": "双名法由谁创立？一个完整的学名由哪3部分构成？", "answer": "瑞典人林奈；属名+种加词+命名人（常缩写）", "options": "", "category": "填空题"}, {"id": 18, "type": "填空题", "chapter": "总论-裸子植物", "question": "裸子植物木质部具什么？韧皮部具什么？通称什么树？", "answer": "管胞，稀导管和木纤维；筛胞，无筛管和伴胞；通称针叶树", "options": "", "category": "填空题"}, {"id": 19, "type": "填空题", "chapter": "总论-裸子植物", "question": "裸子植物发生于多少年前？被子植物发生于什么纪？", "answer": "三亿年前的古生代泥盆纪；中生代侏罗纪", "options": "", "category": "填空题"}, {"id": 20, "type": "填空题", "chapter": "总论-裸子植物", "question": "树木分布区主要类型有哪些？", "answer": "天然分布与栽培分布、连续分布与间断分布、水平分布与垂直分布", "options": "", "category": "填空题"}, {"id": 21, "type": "填空题", "chapter": "总论-裸子植物", "question": "影响树木生长的4大生态因素是什么？", "answer": "气候因素、土壤因素、地形因素和生物因素", "options": "", "category": "填空题"}, {"id": 22, "type": "填空题", "chapter": "总论-裸子植物", "question": "苏铁的叶有何特点？雌雄如何？种子有几层种皮？", "answer": "叶异型，营养叶为一回羽状分裂；雌雄异株；种子有3层种皮", "options": "", "category": "填空题"}, {"id": 23, "type": "填空题", "chapter": "总论-裸子植物", "question": "银杏的叶是什么形状？在短枝上如何着生？种仁俗称什么？", "answer": "扇形；在短枝上簇生；俗称'白果'", "options": "", "category": "填空题"}, {"id": 24, "type": "填空题", "chapter": "总论-裸子植物", "question": "松科是雌雄同株还是异株？雄蕊具几个花药？花粉有何特征？", "answer": "雌雄同株；雄蕊具2个花药；花粉具气囊", "options": "", "category": "填空题"}, {"id": 25, "type": "填空题", "chapter": "总论-裸子植物", "question": "松属的叶是什么形？几针一束？种鳞呈什么状？", "answer": "针形，2-5针一束；种鳞呈盾状", "options": "", "category": "填空题"}, {"id": 26, "type": "填空题", "chapter": "总论-裸子植物", "question": "杉科叶一般如何着生？哪个属例外？", "answer": "螺旋状着生；水杉属例外，叶为条形，交互对生", "options": "", "category": "填空题"}, {"id": 27, "type": "填空题", "chapter": "总论-裸子植物", "question": "柏科的鳞形叶如何着生？刺形叶如何着生？珠鳞与苞鳞什么关系？", "answer": "鳞形叶交互对生；刺形叶多为3枚轮生；珠鳞与苞鳞合生", "options": "", "category": "填空题"}, {"id": 28, "type": "填空题", "chapter": "总论-裸子植物", "question": "罗汉松科、三尖杉科和红豆杉科的共同特征是什么？", "answer": "均没有球果，种子外均有假种皮包被", "options": "", "category": "填空题"}, {"id": 29, "type": "填空题", "chapter": "总论-裸子植物", "question": "南方红豆杉可提取什么抗癌药物？", "answer": "紫杉醇", "options": "", "category": "填空题"}, {"id": 30, "type": "单选题", "chapter": "总论-裸子植物", "question": "《树木学》（南方本）采用的分类系统中，排在被子植物第一位的是哪个科？", "answer": "C.木兰科", "options": "A.苏铁科  B.木麻黄科  C.木兰科  D.樟科", "category": "单选题"}, {"id": 31, "type": "单选题", "chapter": "总论-裸子植物", "question": "科名的拉丁词尾是什么？", "answer": "D.-aceae", "options": "A.–idea  B.–ales  C.–oideae  D.-aceae", "category": "单选题"}, {"id": 32, "type": "单选题", "chapter": "总论-裸子植物", "question": "下列学名形式正确的是哪一个？", "answer": "C.Prunus mume Sieb. et Zucc.", "options": "A.Prunus triloba var. plena Dipp.  B.Ginkgo Biloba L.  C.Prunus mume Sieb. et Zucc.  D.Cunninghamia lanceolata 'Glauca'", "category": "单选题"}, {"id": 33, "type": "单选题", "chapter": "总论-裸子植物", "question": "哪个树种的分布区类型属于典型的间断分布？", "answer": "B.台湾杉", "options": "A.马尾松  B.台湾杉  C.杉木  D.福建柏", "category": "单选题"}, {"id": 34, "type": "单选题", "chapter": "总论-裸子植物", "question": "马尾松和云南松的分布区基本上不重叠，属于哪种分布？", "answer": "D.替代分布", "options": "A.残遗分布  B.间断分布  C.特有分布  D.替代分布", "category": "单选题"}, {"id": 35, "type": "单选题", "chapter": "总论-裸子植物", "question": "哪一项不属于生态学特性？", "answer": "D.生长快（属于生物学特性）", "options": "A.喜光  B.耐盐碱  C.抗污染  D.生长快", "category": "单选题"}, {"id": 36, "type": "单选题", "chapter": "总论-裸子植物", "question": "叶小而厚，角质层发达，叶脉密，多毛；机械、栅栏和贮水组织发达，海绵组织和胞间隙不发达，据此可判断此树具哪方面特性？", "answer": "C.耐旱", "options": "A.耐荫  B.喜湿  C.耐旱  D.喜肥", "category": "单选题"}, {"id": 37, "type": "单选题", "chapter": "总论-裸子植物", "question": "树木根部长出菌根或根瘤，这是物种间的哪种关系？", "answer": "C.共生", "options": "A.竞争  B.腐生  C.共生  D.寄生", "category": "单选题"}, {"id": 38, "type": "单选题", "chapter": "总论-裸子植物", "question": "银杏雌球花上着生胚珠的部位称为什么？", "answer": "C.珠座", "options": "A.胎座  B.珠鳞  C.珠座  D.套被", "category": "单选题"}, {"id": 39, "type": "单选题", "chapter": "总论-裸子植物", "question": "松科的叶形主要是什么？", "answer": "B.条形和针形", "options": "A.刺形和针形  B.条形和针形  C.鳞形和刺形  D.鳞形和披针形", "category": "单选题"}, {"id": 40, "type": "单选题", "chapter": "总论-裸子植物", "question": "水杉属区别于杉科其他属的特征是哪一项？", "answer": "B.叶交互对生", "options": "A.叶条形  B.叶交互对生  C.种鳞盾状  D.珠鳞和苞鳞同时发育", "category": "单选题"}, {"id": 41, "type": "单选题", "chapter": "总论-裸子植物", "question": "哪一项不是柏科的特征？", "answer": "C.珠鳞与苞鳞分离（柏科珠鳞与苞鳞合生）", "options": "A.常绿  B.叶鳞形或刺形  C.珠鳞与苞鳞分离  D.珠鳞交互对生或3枚轮生", "category": "单选题"}, {"id": 42, "type": "单选题", "chapter": "总论-裸子植物", "question": "哪个树种的种鳞为盾状？", "answer": "B.柳杉", "options": "A.雪松  B.柳杉  C.水松  D.侧柏", "category": "单选题"}, {"id": 43, "type": "单选题", "chapter": "总论-裸子植物", "question": "原产地在喜马拉雅山的是哪一种树？", "answer": "B.雪松", "options": "A.黑松  B.雪松  C.红桧  D.南洋杉", "category": "单选题"}, {"id": 44, "type": "单选题", "chapter": "总论-裸子植物", "question": "水松和竹柏分别是哪一个科的树种？", "answer": "A.杉科和罗汉松科", "options": "A.杉科和罗汉松科  B.松科和柏科  C.杉科和柏科  D.松科和罗汉松科", "category": "单选题"}, {"id": 45, "type": "单选题", "chapter": "总论-裸子植物", "question": "罗汉松科与松科的共同特征是哪一项？", "answer": "D.花粉常有气囊", "options": "A.叶螺旋状着生  B.雌球花发育成球果  C.种子外被假种皮  D.花粉常有气囊", "category": "单选题"}, {"id": 46, "type": "单选题", "chapter": "总论-裸子植物", "question": "杉科的水松和池杉，于水湿地带长出的器官是哪一种？", "answer": "D.膝状根", "options": "A.地下茎  B.匍匐茎  C.支柱根  D.膝状根", "category": "单选题"}, {"id": 47, "type": "单选题", "chapter": "总论-裸子植物", "question": "药用的'土槿皮'是哪个树种的根皮？", "answer": "A.金钱松", "options": "A.金钱松  B.柳杉  C.罗汉松  D.三尖杉", "category": "单选题"}, {"id": 48, "type": "单选题", "chapter": "总论-裸子植物", "question": "种子可为干果食用，且外被假种皮的是哪个树种？", "answer": "D.榧", "options": "A.银杏  B.圆柏  C.罗汉松  D.榧", "category": "单选题"}, {"id": 49, "type": "单选题", "chapter": "总论-裸子植物", "question": "哪一个树种最能抗海风、耐盐碱？", "answer": "C.黑松", "options": "A.柳杉  B.金钱松  C.黑松  D.湿地松", "category": "单选题"}, {"id": 50, "type": "判断题", "chapter": "总论-裸子植物", "question": "恩格勒系统中，将单性无被、具柔荑花序的木麻黄类作为双子叶植物最原始的类群。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 51, "type": "判断题", "chapter": "总论-裸子植物", "question": "根据植物DNA序列的差异测定植物类群的亲缘关系，这属于植物化学方面的分类依据。", "answer": "✗ 错误。这属于分子系统学方面的分类依据，而非植物化学。", "options": "", "category": "判断题"}, {"id": 52, "type": "判断题", "chapter": "总论-裸子植物", "question": "松属的马尾松和云南松主要产地分别是我国东南部和西南部，分布区域基本上是分离的，这属于典型的间断分布。", "answer": "✗ 错误。这属于替代分布，而非间断分布。", "options": "", "category": "判断题"}, {"id": 53, "type": "判断题", "chapter": "总论-裸子植物", "question": "某树种在每年3月份开花，这属于生物学特性。", "answer": "✓ 正确。开花时间属于生物学特性（个体发育规律）。", "options": "", "category": "判断题"}, {"id": 54, "type": "判断题", "chapter": "总论-裸子植物", "question": "喜温树种如杉木、马尾松等最适生于温带地区。", "answer": "✗ 错误。杉木、马尾松最适生于亚热带地区。", "options": "", "category": "判断题"}, {"id": 55, "type": "判断题", "chapter": "总论-裸子植物", "question": "裸子植物雌球花最终都发育为球果。", "answer": "✗ 错误。罗汉松科、三尖杉科和红豆杉科不发育成球果。", "options": "", "category": "判断题"}, {"id": 56, "type": "判断题", "chapter": "总论-裸子植物", "question": "湿地松针叶主要是3针一束，具内生树脂道。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 57, "type": "判断题", "chapter": "总论-裸子植物", "question": "杉木雌球花中，珠鳞发育而苞鳞不发育。", "answer": "✗ 错误。杉木雌球花中苞鳞发育而珠鳞不发育。", "options": "", "category": "判断题"}, {"id": 58, "type": "判断题", "chapter": "总论-裸子植物", "question": "侧柏与柏木种鳞都是4对，但侧柏种子无翅，而柏木种子具窄翅。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 59, "type": "判断题", "chapter": "总论-裸子植物", "question": "银杏和竹柏的种子外均具假种皮。", "answer": "✗ 错误。银杏种子外无假种皮（外种皮肉质），竹柏种子外有假种皮。", "options": "", "category": "判断题"}, {"id": 60, "type": "问答题", "chapter": "总论-裸子植物", "question": "分别列举符合要求的2个不同科的裸子植物树种。\n（1）落叶或半落叶 （2）具短枝 （3）叶条形或条状披针形 （4）雌雄异株 （5）花粉有气囊 （6）种鳞盾状 （7）种子有假种皮 （8）国家重点保护野生植物", "answer": "（1）落叶或半落叶：松科金钱松、杉科水杉\n（2）具短枝：银杏科银杏、松科雪松\n（3）叶条形或条状披针形：松科油杉、杉科杉木\n（4）雌雄异株：苏铁科苏铁、罗汉松科罗汉松\n（5）花粉有气囊：松科马尾松、罗汉松科罗汉松\n（6）种鳞盾状：松科湿地松、杉科柳杉\n（7）种子有假种皮：罗汉松科罗汉松、红豆杉科南方红豆杉\n（8）国家重点保护野生植物：松科金钱松、杉科水松", "options": "", "category": "问答题", "keywords": ["落叶或半落叶", "松科金钱松", "杉科水杉", "具短枝", "银杏科银杏", "松科雪松", "叶条形或条状", "披针形"]}, {"id": 61, "type": "问答题", "chapter": "总论-裸子植物", "question": "比较裸子植物和被子植物的主要特征区别。", "answer": "1. 裸子植物均为木本，稀木质藤本；被子植物具各种生活型。\n2. 裸子植物常具直根系，常总状分枝；被子植物具直根系和须根系，多种分枝方式。\n3. 裸子植物木质部具管胞，稀导管和木纤维；韧皮部具筛胞，无筛管和伴胞。被子植物木质部有导管、管胞和木纤维；韧皮部有筛管和伴胞。\n4. 裸子植物均为单叶，常较狭小，多具旱生结构，叶下常有气孔带，通称针叶树。被子植物具单叶或复叶，叶形常宽阔，木本类通称阔叶树。\n5. 裸子植物具球花，单性；雌球花多发育成球果。被子植物有典型的花；雌蕊由心皮构成，子房发育成果实。\n6. 裸子植物胚珠（种子）裸露，无子房（果皮）包被。被子植物胚珠生于子房中，种子为果皮包被。", "options": "", "category": "问答题", "keywords": ["裸子植物均为", "木本", "稀木质藤本", "裸子植物常具", "直根系", "常总状分枝", "裸子植物木质", "部具管胞"]}, {"id": 62, "type": "问答题", "chapter": "总论-裸子植物", "question": "写出松科植物的主要形态特征。", "answer": "1. 常绿或落叶，乔木稀灌木。\n2. 树皮常呈鳞片状、鳞块状或龟甲状开裂。\n3. 有的具短枝。叶螺旋状互生，在短枝上簇生，条形或针形，基部不下延；针形叶多2-5针一束，生于退化短枝顶端，基部包有叶鞘。\n4. 雌雄同株；雄球花雄蕊螺旋状着生，具2花药，花粉有气囊；雌球花珠鳞和苞鳞螺旋状着生，珠鳞腹面具2倒生胚珠，苞鳞与珠鳞分离。\n5. 球果多1-2年成熟；种鳞木质或革质，扁平或盾状，熟时常张开，宿存或脱落。\n6. 每种鳞具2种子，种子常顶端具翅。", "options": "", "category": "问答题", "keywords": ["常绿或落叶", "乔木稀灌木", "树皮常呈鳞片", "鳞块状或龟甲", "状开裂", "有的具短枝", "叶螺旋状互生", "在短枝上簇生"]}, {"id": 63, "type": "问答题", "chapter": "总论-裸子植物", "question": "比较松属5种：马尾松、黄山松、黑松、火炬松和湿地松的主要形态特征、原产地和分布、生态特性的差异。", "answer": "一、主要形态特征比较：\n马尾松：针叶2（-3）针一束，细而柔软；树脂道边生。\n黄山松：针叶2针一束，较短而硬；树脂道中生。\n黑松：针叶2针一束，粗硬；树脂道中生。\n火炬松：针叶3针一束，较长；树脂道内生。\n湿地松：针叶3（-2）针一束，粗而硬；树脂道内生。\n\n二、原产地和分布：\n马尾松：分布于秦岭、淮河以南，福建省内多在1200m以下。\n黄山松：分布于河南南部以南，部分华中、华东省份中山呈间断分布，福建省内垂直分布约700-1800m。\n黑松：原产日本和朝鲜南部沿海，我国东南沿海700-800m以下引种。\n火炬松和湿地松：原产美国东南部，我国东部和南部各地引种，常植于500m以下的低山丘陵。\n\n三、生态特性的差异：\n马尾松：喜温暖湿润气候，不耐水涝和盐碱，在钙质土生长不良。\n黄山松：适生于中山凉爽湿润气候和酸性黄壤。\n黑松：适生于凉爽湿润的海洋性气候，抗海风，耐盐碱，能生于海滨沙滩上。\n火炬松：较耐荫，喜暖湿气候，较湿地松耐寒。\n湿地松：喜暖湿气候，耐水湿。\n共同点：均为最喜光树种，多喜酸性土，极耐干旱瘠薄。", "options": "", "category": "问答题", "keywords": ["主要形态特征", "比较", "马尾松", "针叶", "针一束", "黄山松", "黑松", "火炬松"]}, {"id": 64, "type": "问答题", "chapter": "总论-裸子植物", "question": "松科、杉科、柏科有何不同的生态特性？比较它们的主要利用价值与发展前景。", "answer": "一、生态特性的差异：\n松科：喜光、耐干瘠，适应性强，多为荒山先锋树种。\n杉科：喜暖湿气候，不耐干旱严寒，喜深厚肥沃酸性土，幼苗稍耐阴，部分种类耐水湿。\n柏科：生态幅广，耐干瘠、盐碱与寒冷，喜钙，可在石灰岩山地生长。\n\n二、主要利用价值的比较：\n松科：为重要用材林树种，木材供建筑、家具、造纸等；产松香、松节油等林化产品；部分种子可食用；不少为荒山造林先锋树种，亦作水土保持与绿化树种。\n杉科：多速生优质用材，木材纹理直、耐腐，用于建筑、桥梁、造船等；多为著名园林观赏树；可用于农田水网地区防护林。\n柏科：木材坚韧耐腐、有香气，用于高档家具、雕刻等；多绿化观赏树种；多用于石灰岩山地生态修复或水土保持。\n\n三、发展前景的比较：\n松科：是用材林与工业原料林主力，人工林经营成熟，生态防护用途广泛；需加强良种选育与病虫害防控。\n杉科：为亚热带速生丰产林核心树种；在湿地绿化、生态公园中应用增加，集约化经营潜力大。\n柏科：在干旱、石质山地生态修复中不可替代；高档用材、园林景观需求持续上升，适合长期多功能培育。", "options": "", "category": "问答题", "keywords": ["金钱松", "水杉", "银杏", "雪松", "油杉", "杉木", "苏铁", "罗汉松", "马尾松", "湿地松", "柳杉", "南方红豆杉"]}, {"id": 65, "type": "名词解释", "chapter": "木兰科-金缕梅科", "question": "一回/二回奇/偶数羽状复叶", "answer": "一回羽状复叶——叶轴不分支，小叶直接着生于叶轴两侧；二回羽状复叶——叶轴具一次分枝，小叶着生于叶轴分枝两侧；奇数羽状复叶——叶轴顶端生有1枚顶生小叶；偶数羽状复叶——叶轴顶端生有2枚顶生小叶。", "options": "", "category": "名词解释", "keywords": ["木本", "直根系", "管胞", "针叶树", "球花", "球果", "胚珠裸露", "阔叶树", "导管", "果实", "子房", "筛管"]}, {"id": 66, "type": "名词解释", "chapter": "木兰科-金缕梅科", "question": "总状/圆锥/伞形/头状花序", "answer": "总状花序——花互生排列在不分枝的花轴上，花柄几等长；圆锥花序——花轴总状分枝，分枝长花，花序开张成圆锥状；伞形花序——花轴极度缩短，花柄几等长，各花均自花轴顶端一点上生出；头状花序——花轴成肥厚膨大的短轴，无柄的花着生于短轴顶端，花序外常有总苞。", "options": "", "category": "名词解释", "keywords": ["常绿或落叶", "树皮鳞片状", "短枝", "叶螺旋状互生", "条形或针形", "2-5针一束", "雌雄同株", "花粉有气囊", "珠鳞与苞鳞分离", "种鳞扁平或盾状", "球果1-2年成熟", "种子具翅"]}, {"id": 67, "type": "名词解释", "chapter": "木兰科-金缕梅科", "question": "整齐花/不整齐花", "answer": "整齐花——花部辐射对称，通过花的中心可作出2个及以上对称面；不整齐花——花部两侧对称，通过花的中心仅能作出1个对称面。", "options": "", "category": "名词解释", "keywords": ["马尾松2针一束", "黄山松2针一束", "黑松2针一束抗海风", "火炬松3针一束", "湿地松3针一束耐水湿", "树脂道边生", "树脂道中生", "树脂道内生", "马尾松不耐水涝盐碱", "黑松原产日本朝鲜"]}, {"id": 68, "type": "名词解释", "chapter": "木兰科-金缕梅科", "question": "蝶形花冠", "answer": "蝶形花科特有，两侧对称，具5枚离生花瓣，上方1枚宽大为旗瓣，两侧2枚为翼瓣，下方2枚合生为龙骨瓣。", "options": "", "category": "名词解释", "keywords": ["松科喜光耐干瘠先锋树种", "杉科喜暖湿不耐干旱严寒", "柏科生态幅广喜钙", "松科用材林松香松节油", "杉科速生优质用材", "柏科木材坚韧耐腐有香气"]}, {"id": 69, "type": "名词解释", "chapter": "木兰科-金缕梅科", "question": "单体/两体雄蕊", "answer": "单体雄蕊——一朵花中全部雄蕊花丝合生为一体，花药彼此分离；两体雄蕊——一朵花中全部雄蕊花丝合生为两组，花药彼此分离。", "options": "", "category": "名词解释", "keywords": ["樟树", "枇杷", "月季", "槐树", "玉兰", "梅", "苹果", "枫香", "凤凰木", "紫藤", "皂荚", "白兰", "桃"]}, {"id": 70, "type": "名词解释", "chapter": "木兰科-金缕梅科", "question": "单/离/合心皮雌蕊", "answer": "单心皮雌蕊——一朵花中具由1个心皮构成的雌蕊；离心皮雌蕊——一朵花中具2至多数心皮，每个心皮分离形成离生的单雌蕊；合心皮雌蕊——一朵花中具1个由2个或以上心皮合生构成的雌蕊。", "options": "", "category": "名词解释", "keywords": ["环状托叶痕", "单叶互生全缘羽状脉", "花大单生两性", "花被片螺旋状排列", "雄蕊多数螺旋状", "离心皮雌蕊多数", "聚合蓇葖果", "种子有红色肉质种皮", "四大金刚"]}, {"id": 71, "type": "名词解释", "chapter": "木兰科-金缕梅科", "question": "子房上/半下/下位", "answer": "子房上位——子房仅以底部与花托相连，花部生于子房下方或周边；子房半下位——子房下半部陷生于花托并与之愈合；子房下位——整个子房埋于杯状花托中并与之愈合。", "options": "", "category": "名词解释", "keywords": ["具油细胞有香气", "单叶互生无托叶", "圆锥伞形或总状花序", "花基数3", "雄蕊4轮每轮3枚", "第3轮花丝基部具2腺体", "花药瓣裂", "核果或浆果", "果托宿存"]}, {"id": 72, "type": "名词解释", "chapter": "木兰科-金缕梅科", "question": "聚合蓇葖果/梨果/荚果", "answer": "聚合蓇葖果——由一朵花内多数离心皮雌蕊发育形成，每枚离生心皮各自发育为一枚蓇葖果；梨果——假果，由下位或半下位子房与增大且肉质化的花托愈合共同发育形成，为苹果亚科特征；荚果——豆科特有，由单心皮上位子房发育而成，成熟时沿背、腹两条缝线同时开裂。", "options": "", "category": "名词解释", "keywords": ["绣线菊亚科无托叶", "苹果亚科子房下位或半下位", "蔷薇亚科离心皮雌蕊", "李亚科单心皮雌蕊核果", "绣线菊亚科蓇葖果", "苹果亚科梨果", "蔷薇亚科聚合瘦果"]}, {"id": 73, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "木兰科树种枝条上具明显的什么痕迹？叶脉为什么脉？", "answer": "环状托叶痕；叶脉为羽状脉", "options": "", "category": "填空题", "keywords": ["含羞草科花辐射对称", "苏木科花两侧对称", "蝶形花科蝶形花冠", "含羞草科花冠镊合状", "苏木科雄蕊10枚常分离", "蝶形花科雄蕊联合成单体或二体", "共同特征荚果单心皮", "共同特征子房上位边缘胎座"]}, {"id": 74, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "木兰科的花具什么类型的雌蕊？子房什么位置？果主要为什么类型？", "answer": "离心皮雌蕊，螺旋状排列；子房上位；果主要为聚合蓇葖果", "options": "", "category": "填空题", "keywords": ["玉兰落叶白兰常绿", "玉兰花顶生白兰花腋生", "玉兰雌蕊群无柄白兰有柄", "玉兰原产中国白兰原产印尼", "玉兰先花后叶耐寒"]}, {"id": 75, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "含笑属的花单生于何处？雌蕊群有什么特征？", "answer": "花单生于叶腋；雌蕊群有柄", "options": "", "category": "填空题", "keywords": ["羊蹄甲常绿洋紫荆落叶", "羊蹄甲二裂1/3-1/2洋紫荆二裂1/4-1/3", "羊蹄甲雄蕊3-4枚", "洋紫荆雄蕊5枚", "羊蹄甲果带状镰形", "洋紫荆全年开花"]}, {"id": 76, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "鹅掌楸属的叶有什么特征？果为什么类型？", "answer": "叶分裂；聚合翅果", "options": "", "category": "填空题", "keywords": ["红豆树嫩枝叶被微毛后无毛", "花榈木枝叶密被绒毛", "红豆树小叶5-7多为5", "花榈木小叶5-9多为7", "红豆树果扁卵圆形", "花榈木果长圆形"]}, {"id": 77, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "木兰科中学过的4个落叶树种是哪些？", "answer": "厚朴、玉兰、紫玉兰和鹅掌楸", "options": "", "category": "填空题", "keywords": ["常绿乔木", "幼苗具羽状复叶后退化", "叶状柄平行脉", "头状花序", "花冠镊合状排列", "雄蕊多数分离", "喜光喜暖热不耐寒", "耐干瘠耐盐碱抗海风", "荒山绿化水土保持防护林"]}, {"id": 78, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "厚朴的主要药用部位是什么？它与鹅掌楸均为国家几级保护植物？", "answer": "树皮；国家二级重点保护野生植物", "options": "", "category": "填空题", "keywords": ["榕树", "乌桕", "垂柳", "板栗", "白兰", "石栎", "菠萝蜜", "油桐", "木麻黄", "青冈"]}, {"id": 79, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "紫玉兰的主要药用部分是什么？中药名为什么？", "answer": "花蕾；中药名为辛夷", "options": "", "category": "填空题", "keywords": ["垂柳小枝细长下垂", "旱柳小枝直立或斜展", "垂柳喜水湿耐水淹", "旱柳耐干旱耐寒", "垂柳黄褐色旱柳黄绿色"]}, {"id": 80, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "荷花木兰（广玉兰）的原产地是？白兰的原产地是？", "answer": "荷花木兰原产北美洲东南部；白兰原产印度尼西亚", "options": "", "category": "填空题", "keywords": ["常绿或落叶乔木", "单叶互生羽状脉", "花单性同株", "柔荑花序", "子房下位", "总苞发育成壳斗", "坚果", "水青冈落叶壳斗4裂", "栗属壳斗针刺状", "栲属常绿壳斗全包", "石栎属壳斗鳞片状", "青冈属壳斗杯状环状排列", "栎属壳斗杯状覆瓦状排列"]}, {"id": 81, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "南方亚热带常绿阔叶林重要组成树种，被称为'四大金刚'的是哪4个科？", "answer": "壳斗科、樟科、木兰科和山茶科", "options": "", "category": "填空题", "keywords": ["常绿乔木", "单叶互生全缘或有锯齿", "叶背常被鳞秕或绒毛", "花单性同株", "雄花序直立柔荑花序", "壳斗全包果实", "坚果1-3枚", "喜温暖湿润酸性红黄壤", "木材建筑家具", "坚果富含淀粉可食用"]}, {"id": 82, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "樟科花多为几基数？雄蕊常几轮？每轮几枚？", "answer": "3基数；雄蕊常4轮，每轮3枚", "options": "", "category": "填空题", "keywords": ["板栗枝叶有毛栲属无毛", "板栗每壳斗2-3枚坚果栲属1枚", "板栗耐寒耐旱", "栲属喜暖湿不耐寒"]}, {"id": 83, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "樟科第3轮雄蕊花丝基部常具什么？花药几室？开裂方式？", "answer": "2枚腺体；花药4室稀2室；瓣裂", "options": "", "category": "填空题", "keywords": ["常绿乔木", "小枝细长绿色有关节", "叶退化为鳞片状", "花单性", "雄花序柔荑花序", "雌花序头状花序", "原产澳大利亚", "喜光喜暖热耐干旱", "耐盐碱抗海风", "海岸沙滩造林先锋树种"]}, {"id": 84, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "樟科中具圆锥花序、无总苞、花为两性花的3个属是？", "answer": "樟属、楠属和润楠属", "options": "", "category": "填空题", "keywords": ["常绿大乔木", "有气生根", "全株有乳汁", "小枝有环状托叶痕", "单叶互生革质", "隐头花序隐花果", "喜光喜暖热", "耐水湿抗污染", "城市行道树庭荫树"]}, {"id": 85, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "樟科中具伞形花序、有总苞、花为单性花的3个属是？", "answer": "木姜子属、山胡椒属和新木姜子属", "options": "", "category": "填空题", "keywords": ["榕树气生根多小叶榕少", "榕树叶上面平滑小叶榕粗糙", "榕树不耐寒小叶榕略耐寒"]}, {"id": 86, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "蔷薇科一般分哪4个亚科？", "answer": "绣线菊亚科、苹果亚科、蔷薇亚科和李亚科", "options": "", "category": "填空题", "keywords": ["油桐雌雄同株木油桐异株", "油桐叶全缘或3浅裂木油桐3-5深裂", "油桐果皮平滑木油桐果皮有皱纹", "油桐不耐寒", "油桐又名三年桐", "木油桐又名千年桐"]}, {"id": 87, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "蔷薇科中通常无托叶的是哪个亚科？子房下位或半下位的是哪个亚科？", "answer": "绣线菊亚科通常无托叶；苹果亚科子房下位或半下位", "options": "", "category": "填空题", "keywords": ["茶嫩枝有毛油茶略有毛", "茶叶薄革质油茶叶厚革质", "茶花有梗油茶花近无梗", "茶萼片宿存油茶萼片脱落", "茶果实较小油茶果实较大", "茶喜光耐荫不耐寒油茶喜光较耐寒"]}, {"id": 88, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "豆目下分哪3个科？", "answer": "苏木（云实）科、含羞草科和蝶形花科", "options": "", "category": "填空题", "keywords": ["乌桕半常绿山乌桕落叶", "乌桕树皮薄片状剥落山乌桕纵裂", "乌桕叶片革质山乌桕纸质", "乌桕圆锥花序山乌桕总状花序", "乌桕花药黄色山乌桕紫红色"]}, {"id": 89, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "豆目3科的共同特征是什么？", "answer": "花常为两性，多5基数，子房上位，单心皮，边缘胎座，果为荚果", "options": "", "category": "填空题", "keywords": ["常绿乔木", "异型叶幼态叶与成熟叶不同", "单叶革质具透明油腺点", "伞形或圆锥花序", "花瓣与萼片联合形成帽状体", "子房下位或半下位", "蒴果藏于花托筒内", "喜光耐干旱喜暖湿", "重要用材树种", "枝叶可提取桉油"]}, {"id": 90, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "金缕梅科均为哪种叶？子房多为什么位置？果为什么类型？", "answer": "单叶互生；子房多为下位或半下位；果为蒴果", "options": "", "category": "填空题", "keywords": ["香椿", "荔枝", "桂花", "柑橘", "榕树", "橡胶树", "台湾相思", "棕榈", "椰子", "女贞"]}, {"id": 91, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "枫香的叶常为什么形状？果序什么形状？蒴果有什么特征？", "answer": "叶掌状3裂；果序球形；蒴果有宿存的2花柱和针刺状萼齿，果序药名为路路通", "options": "", "category": "填空题", "keywords": ["龙眼树皮粗糙纵裂荔枝光滑", "龙眼有花瓣荔枝无花瓣", "龙眼花白色荔枝花绿色", "龙眼果皮黄褐色荔枝红色", "龙眼假种皮白色透明", "龙眼耐寒耐旱强于荔枝"]}, {"id": 92, "type": "填空题", "chapter": "木兰科-金缕梅科", "question": "檵木被什么类型的毛？花为几基数？", "answer": "被褐色星状毛；花两性，4基数", "options": "", "category": "填空题", "keywords": ["叶均对生", "花均两性合瓣花冠", "雄蕊与花冠裂片同数", "木樨科无托叶茜草科有托叶", "木樨科雄蕊常2枚茜草科4-5枚", "木樨科子房2室茜草科2室", "木樨科核果蒴果或浆果茜草科蒴果或浆果"]}, {"id": 93, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "哪个树种的叶不分裂？", "answer": "B.紫荆", "options": "A.鹅掌楸  B.紫荆  C.羊蹄甲  D.枫香", "category": "单选题", "keywords": ["女贞常绿乔木小蜡半常绿或落叶灌木", "女贞枝叶无毛小蜡有毛", "女贞叶革质小蜡叶薄", "女贞花冠筒圆形小蜡花冠筒长筒形"]}, {"id": 94, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "原产于北美洲的树种是哪一个？", "answer": "C.广玉兰（荷花木兰）", "options": "A.白兰  B.马占相思  C.广玉兰（荷花木兰）  D.厚朴", "category": "单选题", "keywords": ["常绿乔木或灌木", "干不分枝有环状叶痕", "叶聚生干顶大型掌状或羽状分裂", "肉穗花序具佛焰苞", "花被片6雄蕊常6", "子房上位3心皮", "核果或浆果", "纤维树种油料树种", "食用树种观赏树种"]}, {"id": 95, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "下列树种中，树皮既作中药又为香料的是哪一种？", "answer": "A.肉桂", "options": "A.肉桂  B.厚朴  C.枫香  D.槐树", "category": "单选题", "keywords": ["棕榈树干细蒲葵粗壮", "棕榈叶柄两侧细锯齿蒲葵粗锯齿", "棕榈花单性蒲葵花两性", "棕榈果实肾形较小蒲葵椭圆形较大", "棕榈较耐寒"]}, {"id": 96, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "哪一项不是蔷薇属的特征？", "answer": "D.子房下位（蔷薇属子房上位）", "options": "A.一回奇数羽状复叶  B.有托叶  C.离心皮雌蕊  D.子房下位", "category": "单选题", "keywords": ["乔木或灌木状稀藤本", "地下茎合轴丛生单轴散生复轴混生", "秆由节和节间组成", "秆箨由箨鞘箨舌箨耳箨片组成", "叶片披针形具平行脉", "花形成小穗再组成花序", "颖果", "竹材建筑家具造纸", "竹笋可食用", "竹林碳汇水土保持"]}, {"id": 97, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "哪一个树种侧芽为并生芽？", "answer": "B.桃", "options": "A.闽楠  B.桃  C.皂荚  D.李", "category": "单选题", "keywords": ["合轴丛生型秆密集丛生", "单轴散生型秆散生", "复轴混生型兼具丛生和散生", "合轴丛生代表孝顺竹", "单轴散生代表毛竹"]}, {"id": 98, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "花冠两侧对称的是哪一个树种？", "answer": "C.羊蹄甲", "options": "A.樟树  B.苹果  C.羊蹄甲  D.台湾相思", "category": "单选题"}, {"id": 99, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "哪一种是外来入侵物种？", "answer": "D.银合欢（原产热带美洲）", "options": "A.凤凰木  B.黄檀  C.壳菜果  D.银合欢", "category": "单选题"}, {"id": 100, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "下列树种中，最耐干旱瘠薄的是哪一种？", "answer": "C.合欢", "options": "A.闽楠  B.红豆树  C.合欢  D.细柄蕈树", "category": "单选题"}, {"id": 101, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "哪个树种具明显的褐色星状毛？", "answer": "D.檵木", "options": "A.紫玉兰  B.紫荆  C.刺桐  D.檵木", "category": "单选题"}, {"id": 102, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "关于紫藤，不正确的描述是哪一项？", "answer": "C.圆锥花序（紫藤为总状花序）", "options": "A.落叶  B.羽状复叶  C.圆锥花序  D.荚果", "category": "单选题"}, {"id": 103, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "下列哪个树种属于国家级保护植物？", "answer": "C.降香黄檀", "options": "A.紫楠  B.黄檀  C.降香黄檀  D.枫香", "category": "单选题"}, {"id": 104, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "单叶，具花序，子房多为下位或半下位，这是哪一个科的特征？", "answer": "A.金缕梅科", "options": "A.金缕梅科  B.木兰科  C.樟科  D.含羞草科", "category": "单选题"}, {"id": 105, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "中药'路路通'是哪一个树种的果实？", "answer": "D.枫香", "options": "A.皂荚  B.蕈树  C.槐树  D.枫香", "category": "单选题"}, {"id": 106, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "哪一项不是山鸡椒的特征？", "answer": "B.圆锥花序（山鸡椒为伞形花序）", "options": "A.单叶  B.圆锥花序  C.花药瓣裂  D.落叶", "category": "单选题"}, {"id": 107, "type": "单选题", "chapter": "木兰科-金缕梅科", "question": "红豆树和花榈木的主要区别特征是哪一项？", "answer": "C.被毛情况（花榈木枝叶密被绒毛，红豆树嫩枝叶被微毛后无毛）", "options": "A.叶类型  B.花序类型  C.被毛情况  D.花冠类型", "category": "单选题"}, {"id": 108, "type": "判断题", "chapter": "木兰科-金缕梅科", "question": "木兰科种类果实均为聚合蓇葖果。", "answer": "✗ 错误。鹅掌楸属的果实为聚合翅果。", "options": "", "category": "判断题"}, {"id": 109, "type": "判断题", "chapter": "木兰科-金缕梅科", "question": "樟科的花中，雄蕊常排成4轮，第2轮雄蕊的花丝基部常具2枚腺体。", "answer": "✗ 错误。是第3轮雄蕊花丝基部常具2枚腺体，不是第2轮。", "options": "", "category": "判断题"}, {"id": 110, "type": "判断题", "chapter": "木兰科-金缕梅科", "question": "樟科中花基数为2的属是新木姜子属。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 111, "type": "判断题", "chapter": "木兰科-金缕梅科", "question": "月季为一回奇数羽状复叶，互生，无托叶，核果。", "answer": "✗ 错误。月季有托叶，且果实为聚合瘦果（蔷薇果），非核果。", "options": "", "category": "判断题"}, {"id": 112, "type": "判断题", "chapter": "木兰科-金缕梅科", "question": "凤凰木为二回偶数羽状复叶，原产于热带非洲。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 113, "type": "判断题", "chapter": "木兰科-金缕梅科", "question": "台湾相思为常绿乔木，叶为镰状披针形，有平行脉。", "answer": "✗ 错误。台湾相思幼苗具羽状复叶，后退化为叶状柄（非真叶），有平行脉。", "options": "", "category": "判断题"}, {"id": 114, "type": "判断题", "chapter": "木兰科-金缕梅科", "question": "蝶形花冠各花瓣是镊合状排列。", "answer": "✗ 错误。蝶形花冠各花瓣是覆瓦状排列，含羞草科花冠才是镊合状排列。", "options": "", "category": "判断题"}, {"id": 115, "type": "判断题", "chapter": "木兰科-金缕梅科", "question": "槐树侧芽属于柄下芽。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 116, "type": "判断题", "chapter": "木兰科-金缕梅科", "question": "刺桐是泉州市的市树，因此，它是一个本土树种。", "answer": "✗ 错误。刺桐原产于印度至大洋洲，是外来引种树种。", "options": "", "category": "判断题"}, {"id": 117, "type": "判断题", "chapter": "木兰科-金缕梅科", "question": "枫香与蕈树的木材不耐腐，带皮树干可培养食用菌。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 118, "type": "问答题", "chapter": "木兰科-金缕梅科", "question": "分别列举符合要求的2种不同科的树种。\n（1）常绿 （2）一回羽状复叶 （3）先花后叶 （4）复雌蕊 （5）子房下位或半下位 （6）荚果 （7）有刺 （8）两性花", "answer": "（1）常绿：樟科樟树、蔷薇科枇杷\n（2）一回羽状复叶：蔷薇科月季、蝶形花科槐树\n（3）先花后叶：木兰科玉兰、蔷薇科梅\n（4）复雌蕊：蔷薇科苹果、金缕梅科枫香\n（5）子房下位或半下位：蔷薇科枇杷、金缕梅科枫香\n（6）荚果：苏木科凤凰木、蝶形花科紫藤\n（7）有刺：蔷薇科月季、苏木科皂荚\n（8）两性花：木兰科白兰、蔷薇科桃", "options": "", "category": "问答题", "keywords": ["常绿", "樟科樟树", "蔷薇科枇杷", "一回羽状复叶", "蔷薇科月季", "蝶形花科槐树", "先花后叶", "木兰科玉兰"]}, {"id": 119, "type": "问答题", "chapter": "木兰科-金缕梅科", "question": "写出木兰科植物的主要形态特征，简述主要特性和用途。", "answer": "主要形态特征：\n1. 常绿或落叶，乔木或灌木。\n2. 小枝有环状托叶痕。\n3. 单叶互生，全缘，稀分裂，羽状脉。\n4. 花大，单生；常两性；各部离生，生于柱状花托上；花被片2-∞轮，每轮3枚；雄蕊多数，螺旋状排列，花药2室，条形，纵裂；离心皮雌蕊多数，螺旋状排列，子房上位，1室。\n5. 聚合蓇葖果，稀聚合翅果。\n6. 种子多具红色肉质种皮。\n\n主要特性：喜光至耐荫，多喜暖湿气候，宜酸性肥沃红黄壤。\n\n用途和价值：\n1. 南方亚热带常绿阔叶林重要组成树种，'四大金刚'之一，具重要生态价值。\n2. 干直材细，为优良用材，如荷花玉兰、醉香含笑等。\n3. 多香料树种，如玉兰、白兰等。\n4. 一些为药用种类，如厚朴、紫玉兰等。\n5. 多著名观赏树，如玉兰、鹅掌楸等。\n6. 有的为珍稀保护植物，如厚朴、鹅掌楸等。", "options": "", "category": "问答题", "keywords": ["主要形态特征", "常绿或落叶", "乔木或灌木", "小枝有环状托", "叶痕", "单叶互生", "全缘", "稀分裂"]}, {"id": 120, "type": "问答题", "chapter": "木兰科-金缕梅科", "question": "写出樟科植物的主要形态特征，简述主要特性和用途。", "answer": "主要形态特征：\n1. 常绿或落叶，乔木或灌木。\n2. 具油细胞，有香气。\n3. 单叶互生，稀近对生，全缘，稀分裂，羽状脉或三出脉；无托叶。\n4. 圆锥、伞形或总状花序；花小，两性或单性异株，稀杂性；花基数3稀2；花被常2轮，裂片6稀4；雄蕊常4轮，每轮3枚，第3轮雄蕊花丝基部常具2腺体，第4轮常退化，花药4室稀2室，瓣裂；子房上位，1室1胚珠。\n5. 核果或浆果，常具宿存花被筒（果托）。\n\n主要特性：喜光至耐荫，多喜暖湿气候，宜酸性肥沃红黄壤。\n\n用途和价值：\n1. 本科是南方亚热带常绿阔叶林重要组成树种，'四大金刚'之一。\n2. 多优良用材，如樟树、楠木等。\n3. 樟树、黄樟等可提取樟脑和樟油，是轻工和医药原料。\n4. 果和枝叶提取芳香油，作香料或用于医药，如肉桂、山苍子等。\n5. 果含油脂，可作工业用油。\n6. 可作行道树和绿化观赏。\n7. 其他：药用的有肉桂、乌药等；水果有鳄梨（牛油果）；珍稀保护植物有闽楠。", "options": "", "category": "问答题", "keywords": ["主要形态特征", "常绿或落叶", "乔木或灌木", "具油细胞", "有香气", "单叶互生", "稀近对生", "全缘"]}, {"id": 121, "type": "问答题", "chapter": "木兰科-金缕梅科", "question": "比较蔷薇科4个亚科的主要特征区别。", "answer": "绣线菊亚科：通常无托叶；子房上位；离心皮雌蕊；果多为蓇葖果，稀蒴果。\n苹果亚科：有托叶；子房下位或半下位；合心皮雌蕊；果为梨果。\n蔷薇亚科：有托叶；子房上位；花托呈头状或坛状；离心皮雌蕊；果为聚合瘦果或聚合核果。\n李亚科：有托叶；子房上位；单心皮雌蕊；果为核果。", "options": "", "category": "问答题", "keywords": ["绣线菊亚科", "通常无托叶", "子房上位", "苹果亚科", "有托叶", "子房下位或半", "蔷薇亚科", "李亚科"]}, {"id": 122, "type": "问答题", "chapter": "木兰科-金缕梅科", "question": "比较豆目3科：含羞草科、苏木科和蝶形花科的主要特征异同。", "answer": "豆目3科共同特征：\n1. 多复叶，稀单叶，多互生；多有托叶。\n2. 花常两性，多5基数；子房上位，1心皮1室，边缘胎座。\n3. 荚果。\n\n豆目3科主要特征区别：\n含羞草科：花辐射对称；花冠镊合状排列；雄蕊5~∞，分离；叶多为二回羽状复叶。\n苏木科：花两侧对称；花冠覆瓦状排列，上方1枚花瓣在最内侧；雄蕊10枚，常分离；叶多为一回或二回羽状复叶。\n蝶形花科：花两侧对称；蝶形花冠（旗瓣+翼瓣+龙骨瓣），覆瓦状排列；雄蕊10枚，花丝多联合成单体或二体雄蕊；叶多为一回羽状复叶。", "options": "", "category": "问答题", "keywords": ["豆目", "科共同特征", "多复叶", "稀单叶", "多互生", "花常两性", "基数", "子房上位"]}, {"id": 123, "type": "问答题", "chapter": "木兰科-金缕梅科", "question": "比较玉兰（白玉兰）和白兰（白兰花）的主要特征、产地与分布、主要特性的区别。", "answer": "玉兰（白玉兰）：落叶乔木；顶芽密被长毛；叶倒卵形，有突尖；花单生枝顶；雌蕊群无柄；原产于中国，黄河流域及以南栽培；先花后叶；耐寒。\n白兰（白兰花）：常绿乔木；顶芽被微毛；叶长椭圆形，不具突尖；花单生叶腋；雌蕊群有柄；原产于印度尼西亚，华南栽培；花叶同放；不耐寒。", "options": "", "category": "问答题", "keywords": ["玉兰", "白玉兰", "落叶乔木", "白兰", "白兰花", "常绿乔木"]}, {"id": 124, "type": "问答题", "chapter": "木兰科-金缕梅科", "question": "比较羊蹄甲与洋紫荆的主要特征与特性区别。", "answer": "羊蹄甲：常绿小乔木；叶硬纸质，长略大于宽，二裂至1/3-1/2；发育雄蕊3-4；果带状镰形；花期秋冬季，果期春季。\n洋紫荆：落叶乔木；叶近革质，宽略大于长，二裂至1/4-1/3；发育雄蕊5；果扁平带状；全年开花，3月最盛，果期6月。", "options": "", "category": "问答题", "keywords": ["羊蹄甲", "常绿小乔木", "叶硬纸质", "洋紫荆", "落叶乔木", "叶近革质"]}, {"id": 125, "type": "问答题", "chapter": "木兰科-金缕梅科", "question": "比较红豆树与花榈木的主要特征区别。", "answer": "红豆树：嫩枝叶被微毛，后无毛；羽状复叶，小叶5-7，多为5；果扁卵圆形；种子大，1-2枚。\n花榈木：枝叶密被绒毛；羽状复叶，小叶5-9，多为7；果长圆形；种子小，2-7枚。", "options": "", "category": "问答题", "keywords": ["红豆树", "嫩枝叶被微毛", "后无毛", "花榈木", "枝叶密被绒毛", "羽状复叶"]}, {"id": 126, "type": "问答题", "chapter": "木兰科-金缕梅科", "question": "含羞草科的相思树类是我国南方沿海地区的重要造林树种。以台湾相思为例，简要介绍其形态特征和生态特性，并分析发展前景。", "answer": "一、形态特征：\n1. 常绿乔木。2. 幼苗具羽状复叶，后退化，具叶状柄，有平行脉。3. 多为头状花序。4. 花小，5基数，两性双被，花冠镊合状排列。5. 雄蕊多数，分离，细长。6. 单心皮雌蕊，子房上位，边缘胎座。7. 荚果。\n\n二、生态特性：\n喜光，喜暖热气候，不耐寒，土壤适应性广，耐干瘠，耐盐碱，抗海风。\n\n三、发展前景：\n台湾相思是南亚热带和东南沿海地区荒山绿化、水土保持、防护林和薪炭林的优良树种，可作观赏树和行道树，树皮提取栲胶，叶作饲料和改良土壤。鉴于东南沿海地区生态条件的特殊性和脆弱性，产于内陆的多数树种生长不佳，而相思树类可以很好适应和改善环境，生态效益好，同时经济价值大，有良好的发展前景。", "options": "", "category": "问答题", "keywords": ["形态特征", "常绿乔木", "幼苗具羽状复", "后退化", "生态特性", "喜光", "喜暖热气候", "不耐寒"]}, {"id": 127, "type": "名词解释", "chapter": "杨柳科-桃金娘科", "question": "葇荑花序", "answer": "花轴直立或下垂，花互生排列在不分枝的花轴上，花无梗或具短梗，花被无或单被，花序常下垂脱落。", "options": "", "category": "名词解释"}, {"id": 128, "type": "名词解释", "chapter": "杨柳科-桃金娘科", "question": "壳斗", "answer": "壳斗科雌花总苞发育形成，包在果实外面的结构，木质化或革质，呈杯状、盘状或球状等各式小总苞。", "options": "", "category": "名词解释"}, {"id": 129, "type": "名词解释", "chapter": "杨柳科-桃金娘科", "question": "蒴果/坚果/聚花果", "answer": "蒴果——由合生心皮子房发育形成的一种干果，成熟时以多种方式开裂。坚果——果皮坚硬，1室，内含1枚种子，果皮与种皮分离。聚花果——又称复果，由整个花序发育形成，花序中的每朵花形成多个小果，聚集在花序轴上形成一个整体果实。", "options": "", "category": "名词解释"}, {"id": 130, "type": "名词解释", "chapter": "杨柳科-桃金娘科", "question": "完全花/不完全花", "answer": "完全花——一朵花中，花萼、花冠、雄蕊、雌蕊4部分都具备。不完全花——一朵花中，花萼、花冠、雄蕊、雌蕊4部分中缺少其中1至3部分。", "options": "", "category": "名词解释"}, {"id": 131, "type": "名词解释", "chapter": "杨柳科-桃金娘科", "question": "帽状体（花盖）", "answer": "桃金娘科的花中，由花萼与花冠联合组成的帽状结构，开花时脱落。", "options": "", "category": "名词解释"}, {"id": 132, "type": "名词解释", "chapter": "杨柳科-桃金娘科", "question": "柔荑/隐头/聚花果", "answer": "柔荑花序——花轴不分枝，花互生排列其上，花无梗或具短梗。隐头花序——花轴顶端膨大并中空，花着生于内壁，为榕属特征。聚花果——由整个花序发育形成的果实。", "options": "", "category": "名词解释"}, {"id": 133, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "杨柳科、壳斗科、胡桃科和木麻黄科的花序主要为什么类型？", "answer": "柔荑花序，花为单性花", "options": "", "category": "填空题"}, {"id": 134, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "杨柳科的果为什么类型？种子基部有什么特征？", "answer": "蒴果；种子基部有白色丝状毛", "options": "", "category": "填空题"}, {"id": 135, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "壳斗科的果为什么类型？由什么发育成的壳斗所包被？", "answer": "坚果；由总苞发育成的壳斗所包被", "options": "", "category": "填空题"}, {"id": 136, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "壳斗科中板栗的壳斗外小苞片呈什么形状？", "answer": "针刺状", "options": "", "category": "填空题"}, {"id": 137, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "胡桃科的特征是什么复叶？", "answer": "一回奇数羽状复叶", "options": "", "category": "填空题"}, {"id": 138, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "木麻黄科的小枝有什么特征？叶退化为什么？", "answer": "小枝细长，绿色，有关节，具沟槽；叶退化为鳞片状，轮生于节上", "options": "", "category": "填空题"}, {"id": 139, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "桑科常有什么汁液？叶为什么类型？", "answer": "常有白色乳汁；叶为单叶，互生稀对生", "options": "", "category": "填空题"}, {"id": 140, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "榕属的花序是什么类型？果为什么类型？", "answer": "隐头花序；隐花果（榕果）", "options": "", "category": "填空题"}, {"id": 141, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "大戟科常有什么汁液？子房什么位置？", "answer": "常有乳汁；子房上位，3室，中轴胎座", "options": "", "category": "填空题"}, {"id": 142, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "山茶科的叶为什么类型？花为单性还是两性？果为什么类型？", "answer": "叶为单叶，互生，常革质；花多为两性花；果为蒴果或核果状", "options": "", "category": "填空题"}, {"id": 143, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "油茶和茶分别是山茶科的什么重要树种？", "answer": "油茶是重要木本油料树种；茶是重要饮料树种", "options": "", "category": "填空题"}, {"id": 144, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "桃金娘科的叶有什么特征？花中有什么特殊结构？", "answer": "叶为单叶，对生，全缘，常具透明油腺点；花中花瓣与萼片联合形成帽状体（花盖）", "options": "", "category": "填空题"}, {"id": 145, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "桉树属（桃金娘科）的原产地是？", "answer": "澳大利亚", "options": "", "category": "填空题"}, {"id": 146, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "枫香的果序什么形状？其药名是什么？", "answer": "果序球形；药名为路路通", "options": "", "category": "填空题"}, {"id": 147, "type": "填空题", "chapter": "杨柳科-桃金娘科", "question": "喜树是哪个科的树种？是国家几级保护植物？", "answer": "蓝果树科（或紫树科）；国家二级重点保护野生植物", "options": "", "category": "填空题"}, {"id": 148, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "垂柳的小枝呈什么形状？", "answer": "A.圆柱形（细长下垂）", "options": "A.圆柱形  B.四棱形  C.三棱形  D.五棱形", "category": "单选题"}, {"id": 149, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "下列哪一种为重要木本粮食树种？", "answer": "A.板栗", "options": "A.板栗  B.油茶  C.青钱柳  D.枫杨", "category": "单选题"}, {"id": 150, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "关于壳斗科的花，描述正确的是哪一项？", "answer": "B.单被花", "options": "A.两性花  B.单被花  C.无被花  D.完全花", "category": "单选题"}, {"id": 151, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "一回奇数羽状复叶是哪一科的特征？", "answer": "C.胡桃科", "options": "A.木麻黄科  B.壳斗科  C.胡桃科  D.杨柳科", "category": "单选题"}, {"id": 152, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "下列树种中，最耐盐碱、抗海风，为热带亚热带海岸沙滩造林先锋树种的是哪一种？", "answer": "D.木麻黄", "options": "A.桑树  B.构树  C.紫荆  D.木麻黄", "category": "单选题"}, {"id": 153, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "哪一种植物全株有乳汁？", "answer": "C.榕树", "options": "A.月季  B.檵木  C.榕树  D.臭椿", "category": "单选题"}, {"id": 154, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "榕属的花序属于哪一种？", "answer": "B.隐头花序", "options": "A.头状花序  B.隐头花序  C.复伞房花序  D.圆锥花序", "category": "单选题"}, {"id": 155, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "我国南方最重要的木本油料树种是哪一种？", "answer": "D.油茶", "options": "A.油桐  B.乌桕  C.油橄榄  D.油茶", "category": "单选题"}, {"id": 156, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "桉树属（桃金娘科）植物原产于？", "answer": "B.澳大利亚", "options": "A.北美洲  B.澳大利亚  C.非洲  D.南美洲", "category": "单选题"}, {"id": 157, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "哪一种不属于大戟科？", "answer": "C.油茶（山茶科）", "options": "A.油桐  B.乌桕  C.油茶  D.橡胶树", "category": "单选题"}, {"id": 158, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "桃金娘科中可作为热带指示植物的是哪一种？", "answer": "D.桃金娘", "options": "A.桉树  B.白千层  C.蒲桃  D.桃金娘", "category": "单选题"}, {"id": 159, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "下列关于桉树的描述，正确的是哪一项？", "answer": "A.单叶（具多种叶型，幼态叶与成熟叶异型）", "options": "A.单叶  B.两性花  C.有乳汁  D.原产于南美洲", "category": "单选题"}, {"id": 160, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "桑科中，哪种的花序为隐头花序？", "answer": "C.榕树（榕属）", "options": "A.桑树  B.构树  C.榕树  D.波罗蜜", "category": "单选题"}, {"id": 161, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "哪种植物具环状托叶痕且全株有乳汁？", "answer": "A.榕树", "options": "A.榕树  B.樟树  C.枫香  D.檵木", "category": "单选题"}, {"id": 162, "type": "单选题", "chapter": "杨柳科-桃金娘科", "question": "壳斗科的壳斗外小苞片呈瘤状的是哪一个属？", "answer": "C.石栎属（石栎属壳斗外小苞片鳞片状或瘤状）", "options": "A.栗属  B.栲属  C.石栎属  D.青冈属", "category": "单选题"}, {"id": 163, "type": "判断题", "chapter": "杨柳科-桃金娘科", "question": "垂柳无顶芽，侧芽为并生芽，小枝细长下垂。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 164, "type": "判断题", "chapter": "杨柳科-桃金娘科", "question": "板栗和石栎的壳斗外小苞片均为针刺状。", "answer": "✗ 错误。板栗壳斗外小苞片为针刺状，石栎的为鳞片状或瘤状。", "options": "", "category": "判断题"}, {"id": 165, "type": "判断题", "chapter": "杨柳科-桃金娘科", "question": "木麻黄雌花排成头状花序，子房下位。", "answer": "✗ 错误。木麻黄雌花排成头状花序，但子房上位。", "options": "", "category": "判断题"}, {"id": 166, "type": "判断题", "chapter": "杨柳科-桃金娘科", "question": "榆树和桑树均属于柔荑花序类。", "answer": "✗ 错误。桑树不属于柔荑花序类，为隐头花序等。", "options": "", "category": "判断题"}, {"id": 167, "type": "判断题", "chapter": "杨柳科-桃金娘科", "question": "榕树是一种热带树种，小枝有环状托叶痕，全株有乳汁。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 168, "type": "判断题", "chapter": "杨柳科-桃金娘科", "question": "橡胶树是目前世界上最重要的天然橡胶树种，属于大戟科。", "answer": "✓ 正确（橡胶树属大戟科）", "options": "", "category": "判断题"}, {"id": 169, "type": "判断题", "chapter": "杨柳科-桃金娘科", "question": "油桐和木油桐都属于大戟科植物。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 170, "type": "判断题", "chapter": "杨柳科-桃金娘科", "question": "山茶科均为常绿阔叶树种，花均为两性花。", "answer": "✗ 错误。山茶科多为常绿，但并非全部；花多为两性，也有单性种类。", "options": "", "category": "判断题"}, {"id": 171, "type": "判断题", "chapter": "杨柳科-桃金娘科", "question": "柠檬桉的叶具柠檬气味，可提取芳香油，原产于澳大利亚。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 172, "type": "判断题", "chapter": "杨柳科-桃金娘科", "question": "白千层树皮灰白色，海绵质，呈多层薄片状剥落。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 173, "type": "问答题", "chapter": "杨柳科-桃金娘科", "question": "分别列举符合要求的2种不同科的树种。\n（1）叶全缘 （2）叶有齿 （3）小枝有环状托叶痕 （4）单性花 （5）具壳斗 （6）圆锥花序 （7）子房下位 （8）聚合果", "answer": "（1）叶全缘：桑科榕树、大戟科乌桕\n（2）叶有齿：杨柳科垂柳、壳斗科板栗\n（3）小枝有环状托叶痕：桑科榕树、木兰科白兰\n（4）单性花：壳斗科板栗、木麻黄科木麻黄\n（5）具壳斗：壳斗科石栎、壳斗科青冈\n（6）圆锥花序：油桐属油桐、大戟科乌桕\n（7）子房下位：杨柳科垂柳、山茶科油茶\n（8）聚合果：蔷薇科月季（聚合瘦果）、木兰科荷花玉兰（聚合蓇葖果）", "options": "", "category": "问答题", "keywords": ["叶全缘", "桑科榕树", "大戟科乌桕", "叶有齿", "杨柳科垂柳", "壳斗科板栗", "小枝有环状托", "叶痕"]}, {"id": 174, "type": "问答题", "chapter": "杨柳科-桃金娘科", "question": "垂柳和旱柳的主要特征比较。", "answer": "垂柳：小枝细长下垂，黄褐色；叶狭披针形，长8-16cm，边缘有细锯齿；雄蕊2；子房无毛。喜水湿，耐水淹，不耐寒。\n旱柳：小枝直立或斜展，黄绿色；叶披针形，长5-10cm，边缘有腺锯齿；雄蕊2；子房有毛。耐干旱，耐寒，不耐水淹。", "options": "", "category": "问答题", "keywords": ["垂柳", "小枝细长下垂", "黄褐色", "旱柳", "小枝直立或斜", "黄绿色"]}, {"id": 175, "type": "问答题", "chapter": "杨柳科-桃金娘科", "question": "壳斗科有哪些主要特征？比较壳斗科6个属（水青冈属、栗属、栲属、石栎属、青冈属、栎属）的主要特征区别。", "answer": "壳斗科主要特征：\n1. 常绿或落叶乔木，稀灌木。\n2. 单叶互生，全缘或有锯齿，羽状脉。\n3. 花单性同株；雄花序柔荑花序或头状花序；雌花1-3朵生于总苞内。\n4. 子房下位，花柱与子房室同数。\n5. 总苞发育成壳斗，外被鳞片状、针刺状或瘤状小苞片。\n6. 坚果1-3（-7）枚，生于壳斗内。\n\n6属区别：\n水青冈属：落叶；壳斗4裂，外被钻形小苞片；每壳斗2坚果。\n栗属：落叶；壳斗全包坚果，外被针刺状小苞片；每壳斗1-3坚果。\n栲属：常绿；壳斗全包或半包坚果，外被鳞片状或针刺状小苞片；每壳斗1-3坚果。\n石栎属：常绿；壳斗全包或半包坚果，外被鳞片状或瘤状小苞片；每壳斗1坚果。\n青冈属：常绿；壳斗杯状或盘状，外被鳞片状小苞片排成环状；每壳斗1坚果。\n栎属：常绿或落叶；壳斗杯状或盘状，外被鳞片状小苞片覆瓦状排列；每壳斗1坚果。", "options": "", "category": "问答题", "keywords": ["壳斗科主要特", "常绿或落叶乔", "稀灌木", "单叶互生", "全缘或有锯齿", "羽状脉", "花单性同株", "雄花序柔荑花"]}, {"id": 176, "type": "问答题", "chapter": "杨柳科-桃金娘科", "question": "栲属是我国南方热带亚热带常绿阔叶林的优势种群和建群种，请介绍其形态特征、生态特性，并分析主要价值和发展前景。", "answer": "形态特征：\n1. 常绿乔木。\n2. 单叶互生，全缘或有锯齿，叶背常被鳞秕或绒毛。\n3. 花单性同株；雄花序为直立柔荑花序；雌花1-3朵生于总苞内。\n4. 子房下位，花柱与子房室同数。\n5. 壳斗全包果实，外被鳞片状、瘤状或针刺状小苞片。\n6. 坚果1-3（-7）枚，生于壳斗内。\n\n生态特性：喜温暖湿润气候，适生于酸性红黄壤。\n\n主要价值：\n①木材供建筑、家具、细木工等用材；\n②坚果富含淀粉，可食用或酿酒（木本粮食）；\n③树皮和壳斗可提取栲胶；\n④为重要水源涵养和水土保持树种，具重要生态价值。\n\n发展前景：适应性强，为南方常绿阔叶林优势种，生态幅宽，可选育优良品种；作为木本粮食树种发展潜力大；同时发展林下经济；碳汇和生态公益林建设中的重要树种。", "options": "", "category": "问答题", "keywords": ["形态特征", "常绿乔木", "单叶互生", "全缘或有锯齿", "叶背常被鳞秕", "花单性同株", "雄花序为直立", "柔荑花序"]}, {"id": 177, "type": "问答题", "chapter": "杨柳科-桃金娘科", "question": "比较板栗和栲属的主要特征区别。", "answer": "板栗：枝叶有毛；叶长圆形或倒卵形等；每壳斗2-3枚坚果；果实扁球形；耐寒耐旱。\n栲属：枝叶无毛或略有毛；叶椭圆形，先端尖；每壳斗1枚坚果；果实圆形；喜暖湿，不耐寒。", "options": "", "category": "问答题", "keywords": ["板栗", "枝叶有毛", "叶长圆形或倒", "栲属", "枝叶无毛或略", "有毛"]}, {"id": 178, "type": "问答题", "chapter": "杨柳科-桃金娘科", "question": "木麻黄科的主要形态特征、分布与特性、主要用途与价值。", "answer": "主要形态特征：\n1. 常绿乔木，树皮纵裂。\n2. 小枝细长下垂，绿色，有关节，具沟槽，易折断。\n3. 叶退化为鳞片状，约7枚，轮生于节上。\n4. 花单性，无被或有萼片，小苞片2枚，子房上位。\n5. 雄花序为柔荑花序，雌花序为头状花序。\n6. 果序球形，宿存苞片木质开裂。\n7. 小坚果具翅。\n\n分布与特性：原产澳大利亚及太平洋群岛（大洋洲），我国东南沿海普遍引种。喜光，喜暖热，耐干旱耐盐碱，抗海风，根系发达耐沙地，忌霜雪和黏重土壤及积水。\n\n主要用途与价值：为热带亚热带海岸沙滩造林先锋树种，木材红褐色，坚重耐久耐磨，可作枕木、矿柱、家具、农具等；树皮可提取栲胶，枝叶作饲料及入药，为优良薪炭材，可产柴油。", "options": "", "category": "问答题", "keywords": ["主要形态特征", "常绿乔木", "树皮纵裂", "小枝细长下垂", "绿色", "有关节", "叶退化为鳞片", "轮生于节上"]}, {"id": 179, "type": "问答题", "chapter": "杨柳科-桃金娘科", "question": "榕树是我国南方常见的重要城市绿化树种，请介绍其主要形态特征和生态特性，并分析重要价值和发展前景。", "answer": "形态特征：\n1. 常绿大乔木，常有气生根。\n2. 全株有乳汁，各部无毛。\n3. 小枝有环状托叶痕。\n4. 单叶互生，全缘，革质，羽状脉。\n5. 隐头花序；隐花果（榕果）腋生。\n\n生态特性：喜光，喜暖热湿润气候，适应性强，耐水湿，对土壤要求不严，抗污染。\n\n重要价值：南方最重要的城市行道树和庭荫树；树皮纤维可制绳索和人造棉；某些榕树可提取橡胶；具有重要的生态价值和文化价值（风水树、村头树）。\n\n发展前景：在南方城市绿化和生态修复中应用广泛，抗污染能力强，适合城市、工矿、庭院绿化；盆景盆栽价值高；热带雨林关键树种，碳汇和生物多样性方面价值巨大。", "options": "", "category": "问答题", "keywords": ["形态特征", "常绿大乔木", "常有气生根", "全株有乳汁", "各部无毛", "小枝有环状托", "叶痕", "单叶互生"]}, {"id": 180, "type": "问答题", "chapter": "杨柳科-桃金娘科", "question": "比较榕树和小叶榕的主要特征区别。", "answer": "榕树：气生根多；叶革质，上面平滑；叶基楔形不下延；隐花果无梗。喜湿润，不耐寒。\n小叶榕：气生根少；叶薄革质，上面略有粗糙感；叶基楔形且基部下延；隐花果有短梗。耐寒性略强。", "options": "", "category": "问答题", "keywords": ["榕树", "气生根多", "叶革质", "小叶榕", "气生根少", "叶薄革质"]}, {"id": 181, "type": "问答题", "chapter": "杨柳科-桃金娘科", "question": "比较油桐和木油桐的主要特征区别。", "answer": "油桐（三年桐）：叶全缘或3浅裂；叶基部腺体2枚，无柄，扁平半球形，无腺体。雌雄同株；果皮平滑；果实较小，果皮薄；不耐寒。\n木油桐（千年桐）：叶常3-5深裂；叶基部腺体2枚，有柄，杯状，有腺体。雌雄异株；果皮有皱纹和疣状突起；果实较大，果皮厚；耐寒性较差。", "options": "", "category": "问答题", "keywords": ["油桐", "三年桐", "叶全缘或", "木油桐", "千年桐", "叶常"]}, {"id": 182, "type": "问答题", "chapter": "杨柳科-桃金娘科", "question": "比较茶和油茶的主要特征区别。", "answer": "茶（茶叶）：嫩枝有毛；叶薄革质，上面有光泽，下面有细毛，边缘有细锯齿；花较大，有梗；萼片和花瓣分化明显，萼片宿存；果实较小，果皮较薄。喜光耐荫，喜温暖湿润，不耐寒。\n油茶：嫩枝略有毛；叶厚革质，两面无毛，上面光亮，边缘有锯齿；花较大，近无梗；萼片与花瓣相似，萼片脱落；果实较大，果皮较厚。喜光，较耐寒。", "options": "", "category": "问答题", "keywords": ["茶叶", "嫩枝有毛", "叶薄革质", "油茶", "嫩枝略有毛", "叶厚革质"]}, {"id": 183, "type": "问答题", "chapter": "杨柳科-桃金娘科", "question": "比较乌桕和山乌桕的主要特征区别。", "answer": "乌桕：半常绿或常绿；树皮薄片状剥落；小叶片革质，先端楔形，有粗锯齿；圆锥花序；花药黄色。耐寒。\n山乌桕：落叶；树皮纵裂；小叶片纸质，先端短渐尖，有细锯齿；总状花序；花药紫红色。不耐寒。", "options": "", "category": "问答题", "keywords": ["乌桕", "半常绿或常绿", "树皮薄片状剥", "山乌桕", "落叶", "树皮纵裂"]}, {"id": 184, "type": "问答题", "chapter": "杨柳科-桃金娘科", "question": "桉树属（桃金娘科）是我国南方引种广泛的重要用材树种，请介绍其主要形态特征和生态特性，并分析重要价值和发展前景。", "answer": "形态特征：\n1. 常绿乔木，稀灌木，树皮常片状剥落。\n2. 单叶，异型叶，幼态叶与成熟叶形态不同；全缘，革质，具透明油腺点，有边脉。\n3. 伞形或圆锥花序，稀单生。\n4. 花两性，子房下位或半下位。\n5. 花瓣与萼片联合形成帽状体（花盖），开花时脱落。\n6. 蒴果，藏于花托筒内，成熟时顶部开裂。\n\n生态特性：喜光，耐干旱，喜温暖湿润气候，不耐寒。\n\n重要价值：重要用材树种，木材坚硬耐腐，可用于建筑、矿柱、家具、造纸、人造板等；枝叶可提取桉油，树皮可提取栲胶；为重要的蜜源植物；抗污染能力强，为南方重要造林树种。\n\n发展前景：在南方用材林和工业原料林中的地位稳定，需优化品种选育和推广混交林、适度管控种植规模以减少生态影响，实现用材生产与生态保护协调发展。", "options": "", "category": "问答题", "keywords": ["形态特征", "常绿乔木", "稀灌木", "树皮常片状剥", "单叶", "异型叶", "幼态叶与成熟", "伞形或圆锥花"]}, {"id": 185, "type": "名词解释", "chapter": "红树科-竹亚科", "question": "单身复叶", "answer": "一种特殊类型的复叶，叶轴顶端具1枚小叶，侧生小叶退化，小叶与叶轴连接处有关节，为芸香科柑橘属等植物的特征。", "options": "", "category": "名词解释"}, {"id": 186, "type": "名词解释", "chapter": "红树科-竹亚科", "question": "箨", "answer": "竹亚科秆和枝条上的变态叶，着生于秆上的箨环处，由箨鞘、箨舌、箨耳和箨片组成，起保护幼嫩秆节的作用。", "options": "", "category": "名词解释"}, {"id": 187, "type": "名词解释", "chapter": "红树科-竹亚科", "question": "合轴/单轴/复轴型地下茎", "answer": "合轴型——地下茎顶芽弯曲向上成笋，侧芽继续水平生长，形成密集丛生的竹秆（丛生竹）。单轴型——地下茎细长，在土壤中横走，节上芽可萌发成笋或继续水平生长，形成散生竹。复轴型——兼具合轴和单轴特征，形成混生竹。", "options": "", "category": "名词解释"}, {"id": 188, "type": "名词解释", "chapter": "红树科-竹亚科", "question": "唇形花冠", "answer": "花冠合瓣，呈二唇形，上唇2裂、下唇3裂，为唇形科和马鞭草科部分种类的特征。", "options": "", "category": "名词解释"}, {"id": 189, "type": "名词解释", "chapter": "红树科-竹亚科", "question": "四强雄蕊", "answer": "雄蕊6枚，其中4枚较长、2枚较短（4长2短），为十字花科的特征。", "options": "", "category": "名词解释"}, {"id": 190, "type": "名词解释", "chapter": "红树科-竹亚科", "question": "柑果/核果/颖果", "answer": "柑果——外果皮革质有油腺，中果皮白色海绵状，内果皮膜质成囊瓣。核果——外果皮薄，中果皮肉质，内果皮坚硬成核。颖果——禾本科特有，果皮与种皮愈合，内含1枚种子，为竹亚科果实类型。", "options": "", "category": "名词解释"}, {"id": 191, "type": "名词解释", "chapter": "红树科-竹亚科", "question": "聚合果/聚花果", "answer": "聚合果——由一朵花内多数离心皮雌蕊发育形成，各心皮各成一小果聚生在同一花托上。聚花果——由整个花序发育形成的果实。", "options": "", "category": "名词解释"}, {"id": 192, "type": "填空题", "chapter": "红树科-竹亚科", "question": "红树科植物有何特殊的繁殖方式？", "answer": "胎萌现象——种子在母树上萌发成幼苗后才脱落", "options": "", "category": "填空题"}, {"id": 193, "type": "填空题", "chapter": "红树科-竹亚科", "question": "芸香科常具什么刺？叶和果有何特征？", "answer": "常具皮刺或枝刺；叶和果常有透明油腺点", "options": "", "category": "填空题"}, {"id": 194, "type": "填空题", "chapter": "红树科-竹亚科", "question": "柑橘属（芸香科）的果实为什么类型？", "answer": "柑果", "options": "", "category": "填空题"}, {"id": 195, "type": "填空题", "chapter": "红树科-竹亚科", "question": "楝科中香椿的叶是什么类型？", "answer": "2-3回奇数羽状复叶", "options": "", "category": "填空题"}, {"id": 196, "type": "填空题", "chapter": "红树科-竹亚科", "question": "无患子科中，龙眼和荔枝的果实可食用部分是什么？", "answer": "肉质假种皮", "options": "", "category": "填空题"}, {"id": 197, "type": "填空题", "chapter": "红树科-竹亚科", "question": "漆树科中，漆树可割取什么？盐肤木上的虫瘿叫什么？", "answer": "漆树可割取生漆；盐肤木上的虫瘿为五倍子", "options": "", "category": "填空题"}, {"id": 198, "type": "填空题", "chapter": "红树科-竹亚科", "question": "木樨科中，桂花（木樨）的原产地是？花冠什么颜色？", "answer": "原产中国西南部；花冠淡黄色或白色，具浓郁香气", "options": "", "category": "填空题"}, {"id": 199, "type": "填空题", "chapter": "红树科-竹亚科", "question": "茜草科中，水团花的花序是什么类型？叶有什么特征？", "answer": "头状花序；叶对生，2列排列，托叶三角形", "options": "", "category": "填空题"}, {"id": 200, "type": "填空题", "chapter": "红树科-竹亚科", "question": "棕榈科植物叶常聚生何处？花序外包什么？", "answer": "叶常聚生于干顶；肉穗花序，具佛焰苞", "options": "", "category": "填空题"}, {"id": 201, "type": "填空题", "chapter": "红树科-竹亚科", "question": "竹亚科的地下茎系统有哪4种类型？", "answer": "合轴丛生型、单轴散生型、复轴混生型和合轴散生型", "options": "", "category": "填空题"}, {"id": 202, "type": "填空题", "chapter": "红树科-竹亚科", "question": "毛竹（楠竹）的地下茎属于什么类型？", "answer": "单轴散生型", "options": "", "category": "填空题"}, {"id": 203, "type": "填空题", "chapter": "红树科-竹亚科", "question": "竹亚科的秆箨由哪几部分组成？", "answer": "箨鞘、箨舌、箨耳和箨片", "options": "", "category": "填空题"}, {"id": 204, "type": "填空题", "chapter": "红树科-竹亚科", "question": "马鞭草科中柚木的木材有何特征和用途？", "answer": "木材坚硬耐腐，为世界著名船舰和高级家具用材", "options": "", "category": "填空题"}, {"id": 205, "type": "填空题", "chapter": "红树科-竹亚科", "question": "木樨科中白蜡树的哪个部位可养白蜡虫？", "answer": "枝叶可放养白蜡虫，生产白蜡", "options": "", "category": "填空题"}, {"id": 206, "type": "单选题", "chapter": "红树科-竹亚科", "question": "关于红树科植物，哪一项描述是正确的？", "answer": "C.具胎萌现象", "options": "A.叶对生  B.小枝无节  C.具胎萌现象  D.子房上位", "category": "单选题"}, {"id": 207, "type": "单选题", "chapter": "红树科-竹亚科", "question": "哪一种不是芸香科柑橘属的特征？", "answer": "B.叶无油点（柑橘属叶有透明油腺点）", "options": "A.单身复叶  B.叶无油点  C.柑果  D.子房上位", "category": "单选题"}, {"id": 208, "type": "单选题", "chapter": "红树科-竹亚科", "question": "香椿的叶为2-3回奇数羽状复叶，属于哪个科？", "answer": "A.楝科", "options": "A.楝科  B.苦木科  C.漆树科  D.芸香科", "category": "单选题"}, {"id": 209, "type": "单选题", "chapter": "红树科-竹亚科", "question": "龙眼的可食部分是什么？", "answer": "C.假种皮", "options": "A.中果皮  B.内果皮  C.假种皮  D.胎座", "category": "单选题"}, {"id": 210, "type": "单选题", "chapter": "红树科-竹亚科", "question": "盐肤木上的虫瘿形成的重要工业原料是什么？", "answer": "C.五倍子（富含单宁，用于制革、医药等）", "options": "A.单宁酸  B.没食子酸  C.五倍子  D.儿茶素", "category": "单选题"}, {"id": 211, "type": "单选题", "chapter": "红树科-竹亚科", "question": "桂花（木樨）的原产地是哪里？", "answer": "B.中国西南部", "options": "A.地中海沿岸  B.中国西南部  C.日本  D.印度", "category": "单选题"}, {"id": 212, "type": "单选题", "chapter": "红树科-竹亚科", "question": "茜草科植物不可能出现的特征是哪一项？", "answer": "D.叶缘有齿（茜草科叶常全缘）", "options": "A.叶对生  B.有托叶  C.头状花序  D.叶缘有齿", "category": "单选题"}, {"id": 213, "type": "单选题", "chapter": "红树科-竹亚科", "question": "子房位置与马鞭草科相同的是哪一个科？", "answer": "A.木樨科（子房上位）", "options": "A.木樨科  B.胡桃科  C.茜草科  D.桃金娘科", "category": "单选题"}, {"id": 214, "type": "单选题", "chapter": "红树科-竹亚科", "question": "叶为羽状全裂的是哪一种棕榈科植物？", "answer": "B.鱼尾葵", "options": "A.棕竹  B.鱼尾葵  C.丝葵  D.加那利海枣", "category": "单选题"}, {"id": 215, "type": "单选题", "chapter": "红树科-竹亚科", "question": "叶背银白色，叶脉呈平行丝状纤维的是哪一种棕榈科植物？", "answer": "C.丝葵（老人葵）", "options": "A.蒲葵  B.棕榈  C.丝葵（老人葵）  D.加那利海枣", "category": "单选题"}, {"id": 216, "type": "单选题", "chapter": "红树科-竹亚科", "question": "毛竹的地下茎属于什么类型？", "answer": "B.单轴型（单轴散生）", "options": "A.合轴型  B.单轴型  C.复轴型  D.合轴散生型", "category": "单选题"}, {"id": 217, "type": "单选题", "chapter": "红树科-竹亚科", "question": "下列哪种竹子为丛生竹？", "answer": "B.孝顺竹（合轴丛生型）", "options": "A.毛竹  B.孝顺竹  C.淡竹  D.刚竹", "category": "单选题"}, {"id": 218, "type": "单选题", "chapter": "红树科-竹亚科", "question": "被誉为'树木之王'的树种是？", "answer": "B.楠木（樟科楠属珍贵用材的美誉）", "options": "A.香椿  B.楠木  C.红豆杉  D.银杏", "category": "单选题"}, {"id": 219, "type": "单选题", "chapter": "红树科-竹亚科", "question": "盐肤木上的虫瘿——五倍子的主要用途是什么？", "answer": "A.单宁提取（制革、医药等）", "options": "A.单宁提取  B.香料制作  C.橡胶生产  D.染料制作", "category": "单选题"}, {"id": 220, "type": "单选题", "chapter": "红树科-竹亚科", "question": "竹亚科中，秆箨的哪个部分常用来区分竹种？", "answer": "D.以上均是（箨鞘、箨舌、箨耳、箨片均可作为分类特征）", "options": "A.箨鞘  B.箨舌和箨耳  C.箨片  D.以上均是", "category": "单选题"}, {"id": 221, "type": "判断题", "chapter": "红树科-竹亚科", "question": "红树科植物均具胎萌现象，为胎生植物。", "answer": "✗ 错误。并非所有红树科植物都具胎萌现象，胎萌是红树科部分种类的特征。", "options": "", "category": "判断题"}, {"id": 222, "type": "判断题", "chapter": "红树科-竹亚科", "question": "柑橘属植物具皮刺，叶为单身复叶，果为柑果。", "answer": "✗ 错误。柑橘属（如柚子）具枝刺而非皮刺。枝刺由枝条变态形成，皮刺由表皮形成。芸香科花椒属具皮刺，柑橘属具枝刺。", "options": "", "category": "判断题"}, {"id": 223, "type": "判断题", "chapter": "红树科-竹亚科", "question": "龙眼的花序是圆锥花序，花单性或两性。", "answer": "✓ 正确（龙眼花序为圆锥花序，花杂性或两性）", "options": "", "category": "判断题"}, {"id": 224, "type": "判断题", "chapter": "红树科-竹亚科", "question": "荔枝的可食部分为肉质假种皮，由珠柄发育而来。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 225, "type": "判断题", "chapter": "红树科-竹亚科", "question": "漆树科树皮有白色乳汁，可割取生漆。", "answer": "✗ 错误。漆树科树皮有树脂道，割取的为生漆（树脂），非白色乳汁。", "options": "", "category": "判断题"}, {"id": 226, "type": "判断题", "chapter": "红树科-竹亚科", "question": "橄榄油是高级食用油，由橄榄的种子压榨得到。", "answer": "✗ 错误。橄榄油由橄榄果肉（中果皮）压榨得到，非种子。", "options": "", "category": "判断题"}, {"id": 227, "type": "判断题", "chapter": "红树科-竹亚科", "question": "桂花为常绿灌木或小乔木，叶对生，花冠合瓣。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 228, "type": "判断题", "chapter": "红树科-竹亚科", "question": "马鞭草科均为两性花，合瓣花，雄蕊与花冠裂片互生。", "answer": "✗ 错误。马鞭草科花两性，但雄蕊与花冠裂片同数而对生（或互生），特征表述不完整。", "options": "", "category": "判断题"}, {"id": 229, "type": "判断题", "chapter": "红树科-竹亚科", "question": "椰子为单性花，内果皮坚硬，有3个发芽孔。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 230, "type": "判断题", "chapter": "红树科-竹亚科", "question": "毛竹为单轴散生型竹类，秆箨密被褐色刺毛和暗色斑点。", "answer": "✓ 正确", "options": "", "category": "判断题"}, {"id": 231, "type": "问答题", "chapter": "红树科-竹亚科", "question": "分别列举具备要求的2种不同科的树种。\n（1）羽状复叶 （2）叶对生 （3）单身复叶 （4）有乳汁 （5）合瓣花冠 （6）蒴果 （7）头状花序 （8）棕榈科树种", "answer": "（1）羽状复叶：楝科香椿、无患子科荔枝\n（2）叶对生：木樨科桂花、茜草科水团花\n（3）单身复叶：芸香科柑橘、芸香科金橘\n（4）有乳汁：桑科榕树、大戟科橡胶树\n（5）合瓣花冠：唇形科植物、马鞭草科柚木\n（6）蒴果：木樨科女贞、茜草科水团花\n（7）头状花序：含羞草科台湾相思、茜草科水团花\n（8）棕榈科树种：棕榈、椰子", "options": "", "category": "问答题", "keywords": ["羽状复叶", "楝科香椿", "无患子科荔枝", "叶对生", "木樨科桂花", "茜草科水团花", "单身复叶", "芸香科柑橘"]}, {"id": 232, "type": "问答题", "chapter": "红树科-竹亚科", "question": "比较龙眼和荔枝的主要特征区别。", "answer": "龙眼：树皮粗糙纵裂；叶革质，小叶两面均无毛；花有花瓣；花白色；果皮黄褐色，有微小平滑突起；可食部分（假种皮）白色透明；耐寒耐旱性强。\n荔枝：树皮光滑；叶薄革质，小叶下面略有毛；无花瓣；花绿色；果皮红色，有瘤状突起；可食部分（假种皮）白色多汁；耐寒耐旱性较强。", "options": "", "category": "问答题", "keywords": ["龙眼", "树皮粗糙纵裂", "叶革质", "荔枝", "树皮光滑", "叶薄革质"]}, {"id": 233, "type": "问答题", "chapter": "红树科-竹亚科", "question": "比较木樨科和茜草科的主要特征异同。", "answer": "共同特征：\n1. 叶均为对生。\n2. 花均为两性花，合瓣花冠。\n3. 雄蕊与花冠裂片同数。\n4. 子房上位。\n\n不同特征：\n木樨科：单叶或复叶（如羽状复叶、三出复叶等），叶缘全缘或有锯齿；花冠裂片常4枚；雄蕊常2枚；子房2室；果为核果、蒴果或浆果。\n茜草科：单叶，叶缘常全缘，有托叶；花冠裂片4-5枚；雄蕊与花冠裂片同数；子房2室；果为蒴果或浆果。", "options": "", "category": "问答题", "keywords": ["共同特征", "叶均为对生", "花均为两性花", "合瓣花冠", "雄蕊与花冠裂", "片同数", "子房上位", "不同特征"]}, {"id": 234, "type": "问答题", "chapter": "红树科-竹亚科", "question": "比较女贞和小蜡的主要特征。", "answer": "女贞：常绿乔木；枝叶无毛；叶革质；叶片较大；花冠筒圆形，不裂开；果实圆形，不裂。\n小蜡：半常绿或落叶灌木；枝叶有毛；叶薄革质或纸质；叶片较小；花冠筒长筒形。", "options": "", "category": "问答题", "keywords": ["女贞", "常绿乔木", "枝叶无毛", "小蜡", "半常绿或落叶", "灌木"]}, {"id": 235, "type": "问答题", "chapter": "红树科-竹亚科", "question": "棕榈科是热带亚热带特色植物类群，请介绍其主要形态特征和重要价值。", "answer": "主要形态特征：\n1. 常绿乔木或灌木，稀藤本。\n2. 干不分枝，有环状叶痕或残存叶基。\n3. 叶常聚生干顶，大型，掌状或羽状分裂，常具纤维质叶鞘。\n4. 肉穗花序，具佛焰苞；花小，两性、单性或杂性，花被片6，雄蕊常6，子房上位，3心皮，柱头3。\n5. 核果或浆果，种子常1枚。\n\n重要价值：\n1. 重要纤维树种，如棕榈等的叶鞘纤维可制绳、刷、垫等。\n2. 重要油料树种，如油棕、椰子等。\n3. 食用树种，如椰子、槟榔等。\n4. 热带亚热带重要观赏树种。\n5. 部分树种有药用价值。\n6. 木材供建筑、器具等。", "options": "", "category": "问答题", "keywords": ["主要形态特征", "常绿乔木或灌", "稀藤本", "干不分枝", "有环状叶痕或", "残存叶基", "叶常聚生干顶", "大型"]}, {"id": 236, "type": "问答题", "chapter": "红树科-竹亚科", "question": "比较棕榈和蒲葵的主要特征区别。", "answer": "棕榈：树干较细，常被残存叶基；叶片较小，掌状深裂；叶柄两侧具细锯齿；花单性；果实肾形，较小。耐寒性较强。\n蒲葵：树干较粗壮，叶基脱落；叶片较大，掌状浅裂；叶柄边缘具粗锯齿；花两性；果实椭圆形，较大。不耐寒。", "options": "", "category": "问答题", "keywords": ["棕榈", "树干较细", "常被残存叶基", "蒲葵", "树干较粗壮", "叶基脱落"]}, {"id": 237, "type": "问答题", "chapter": "红树科-竹亚科", "question": "竹亚科是我国南方最重要的经济竹类植物类群，请介绍其主要形态特征、生态特性，并分析主要价值和发展前景。", "answer": "主要形态特征：\n1. 乔木或灌木状，稀藤本。\n2. 地下茎系统有合轴丛生型、单轴散生型、复轴混生型和合轴散生型4种类型。\n3. 秆由节和节间组成，节上有箨环。\n4. 秆箨由箨鞘、箨舌、箨耳和箨片组成。\n5. 叶有2列，互生于末级分枝的各节上，叶鞘顶端有小叶柄。\n6. 叶片披针形，具平行脉。\n7. 花形成小穗，再组成各种花序；雄蕊3-6枚，子房上位，1室，柱头羽毛状。\n8. 颖果。\n\n生态特性：喜温暖湿润气候，多数喜肥沃湿润土壤，生长快，繁殖力强。\n\n主要价值：\n1. 竹材在建筑、家具、编织、工艺品、造纸等方面用途广泛。\n2. 竹笋可食用。\n3. 可生产竹炭、竹醋液等。\n4. 竹林具重要生态功能（碳汇、水土保持、水源涵养）。\n5. 部分竹种枝叶可入药或作饲料。\n\n发展前景：竹材加工技术不断升级（竹集成材、竹纤维等新材料方向），竹产业在绿色低碳、循环经济中潜力巨大，是南方山区乡村振兴的重要支柱产业。", "options": "", "category": "问答题", "keywords": ["主要形态特征", "乔木或灌木状", "稀藤本", "地下茎系统有", "合轴丛生型", "单轴散生型", "秆由节和节间", "组成"]}, {"id": 238, "type": "问答题", "chapter": "红树科-竹亚科", "question": "简述竹亚科的4种地下茎类型，并各举1例代表竹种。", "answer": "1. 合轴丛生型：地下茎顶芽弯曲向上成笋，侧芽继续水平生长，秆基密集，形成丛生竹。代表：孝顺竹。\n2. 单轴散生型：地下茎细长，在土壤中横走（竹鞭），节上芽可萌发成笋或继续水平生长，秆散生。代表：毛竹（楠竹）。\n3. 复轴混生型：兼具合轴和单轴特征，既有丛生秆又有散生秆，形成混生竹。代表：苦竹。\n4. 合轴散生型：地下茎顶芽弯曲向上成笋，侧芽先水平延伸一段再成笋，秆散生但地下茎较短。代表：箭竹。", "options": "", "category": "问答题", "keywords": ["合轴丛生型", "地下茎顶芽弯", "曲向上成笋", "单轴散生型", "地下茎细长", "在土壤中横走", "复轴混生型", "兼具合轴和单"]}];
+var KEY_DATA = [{"title": "裸子植物15种检索表", "species": "苏铁、银杏、油杉、金钱松、马尾松、湿地松、杉木、柳杉、水杉、侧柏、福建柏、圆柏、罗汉松、竹柏、南方红豆杉", "key": "1. 茎常不分枝；叶大型羽状深裂……1.苏铁\n1. 茎有分枝；叶小型非羽状深裂\n  2. 叶扇形；叶脉二叉分枝……2.银杏\n  2. 叶非扇形\n    3. 雌球花发育成球果\n      4. 珠鳞与苞鳞离生\n        5. 叶条形种鳞扁平\n          6. 无短枝叶排成二列……3.油杉\n          6. 具短枝……4.金钱松\n        5. 叶针形种鳞盾状\n          7. 2针一束细软……5.马尾松\n          7. 3针一束粗硬……6.湿地松\n      4. 珠鳞与苞鳞合生/半合生\n        8. 螺旋状互生\n          9. 叶条状披针形……7.杉木\n          9. 叶锥形……8.柳杉\n        8. 交互对生叶条形……9.水杉\n    3. 种子包于肉质假种皮\n      10. 花粉有气囊假种皮全包\n        11. 叶条形螺旋状……10.罗汉松\n        11. 叶椭圆形近对生……11.竹柏\n      10. 花粉无气囊……12.南方红豆杉"}, {"title": "木兰科-金缕梅科15种检索表", "species": "白兰、鹅掌楸、樟树、山鸡椒、枇杷、月季、梅、凤凰木、紫荆、台湾相思、银合欢、红豆树、刺桐、枫香、檵木", "key": "1. 花被不分化为花萼和花冠\n  2. 花单生聚合果\n    3. 花腋生聚合蓇葖果……1.白兰花\n    3. 花顶生聚合翅果……2.鹅掌楸\n  2. 花排成花序核果/浆果\n    4. 圆锥花序两性花……3.樟树\n    4. 伞形花序单性花……4.山鸡椒\n1. 花被分化为花萼和花冠\n  5. 非蒴果\n    6. 非荚果\n      7. 梨果合心皮雌蕊子房下位……5.枇杷\n      7. 聚合瘦果/核果离心皮/单雌蕊\n        8. 聚合瘦果离心皮……6.月季\n        8. 核果单雌蕊……7.梅\n    6. 荚果\n      9. 整齐花镊合状头状花序\n        10. 花金黄色……8.台湾相思\n        10. 花银白色……9.银合欢\n      9. 不整齐花覆瓦状非头状\n        11. 非蝶形花冠\n          12. 伞房状总状……10.凤凰木\n          12. 花簇生……11.紫荆\n        11. 蝶形花冠\n          13. 圆锥花序雄蕊分离……12.红豆树\n          13. 总状花序单体雄蕊……13.刺桐\n  5. 蒴果\n    14. 单性花单被花头状……14.枫香\n    14. 两性花双被花短穗状……15.檵木"}, {"title": "杨柳科-桃金娘科15种检索表", "species": "垂柳、板栗、石栎、枫杨、木麻黄、榕树、构树、油桐、木油桐、茶、油茶、木荷、桉树、桃金娘、白千层", "key": "1. 复叶→一回奇数羽状复叶……1.枫杨\n1. 单叶\n  2. 柔荑花序\n    3. 雄花序柔荑状\n      4. 壳斗针刺状……2.板栗\n      4. 壳斗鳞片/瘤状……3.石栎\n    3. 蒴果种子有白毛……4.垂柳\n  2. 非柔荑花序\n    5. 蒴果\n      6. 子房上位有乳汁……5.油桐\n      6. 子房下位/半下位\n        7. 帽状体……6.桉树\n        7. 蒴果多种开裂……7.木荷\n    5. 非蒴果\n      8. 聚花果/隐花果有乳汁……8.榕树\n      8. 核果/浆果\n        9. 子房下位有帽状体……9.白千层\n        9. 子房上位核果含芳香油……10.茶"}, {"title": "红树科-竹亚科15种检索表", "species": "柑橘、龙眼、荔枝、盐肤木、桂花、女贞、水团花、柚木、棕榈、蒲葵、鱼尾葵、毛竹、孝顺竹、箭竹、苦竹", "key": "1. 双子叶\n  2. 复叶\n    3. 单身复叶……1.柑橘\n    3. 羽状复叶……2.龙眼\n  2. 单叶\n    4. 叶对生\n      5. 合瓣花冠\n        6. 子房上位蒴果/浆果……3.女贞\n        6. 子房上位核果/蒴果……4.桂花\n      5. 离瓣花冠有托叶……5.水团花\n    4. 叶互生/基生\n      7. 掌状分裂……6.棕榈\n      7. 羽状全裂鱼尾状……7.鱼尾葵\n1. 单子叶(竹亚科)\n  9. 合轴丛生……8.孝顺竹\n  9. 单轴散生……9.毛竹"}];
+var PAGE_DATA = [["苏铁科", 28, 28, 1], ["银杏科", 29, 29, 1], ["南洋杉科", 30, 30, 1], ["松科", 31, 55, 25], ["杉科", 56, 61, 6], ["柏科", 62, 68, 7], ["罗汉松科", 69, 72, 4], ["三尖杉科", 73, 73, 1], ["红豆杉科", 74, 79, 6], ["木兰科", 80, 106, 27], ["樟科", 107, 134, 28], ["蔷薇科", 135, 166, 32], ["苏木科", 167, 182, 16], ["含羞草科", 183, 192, 10], ["蝶形花科", 193, 252, 60], ["金缕梅科", 253, 264, 12], ["杨柳科", 265, 283, 19], ["壳斗科", 284, 313, 30], ["胡桃科", 314, 320, 7], ["木麻黄科", 321, 321, 1], ["榆科", 322, 330, 9], ["桑科", 331, 363, 33], ["梧桐科", 364, 373, 10], ["大戟科", 374, 388, 15], ["山茶科", 389, 425, 37], ["桃金娘科", 426, 438, 13], ["红树科", 439, 483, 45], ["芸香科", 484, 497, 14], ["楝科", 498, 505, 8], ["无患子科", 506, 512, 7], ["漆树科", 513, 533, 21], ["木犀科", 534, 546, 13], ["茜草科", 547, 559, 13], ["马鞭草科", 560, 582, 23], ["棕榈科", 583, 583, 1], ["竹亚科", 584, 609, 26]];
+
+var qs=[],ci=0,flipped=false,hist={},streak=0,mode='all';
+var TM={"名词解释":"bt-noun","填空题":"bt-fill","单选题":"bt-choice","判断题":"bt-judge","问答题":"bt-qa"};
+var LM={"名词解释":"名","填空题":"填","单选题":"选","判断题":"判","问答题":"问"};
+var TP=["名词解释","填空题","单选题","判断题","问答题"];
+var aType="all",aCh="all";
+var judging=false,chosen=null,timer=null;
+
+// ====== PERSIST ======
+function sh(){try{localStorage.setItem('dendrology_v13',JSON.stringify(hist));}catch(e){}}
+function lh(){try{var h=localStorage.getItem('dendrology_v13');if(h){hist=JSON.parse(h);}}catch(e){}}
+function ct(){if(timer){clearTimeout(timer);timer=null;}}
+
+// ====== FILTERS ======
+function buildQs(){
+  if(mode==='wrong'){
+    var ids=Object.keys(hist).filter(function(k){return hist[k]==='wrong';});
+    if(!ids.length){mode='all';qs=QDATA.filter(function(q){return(aType==='all'||q.type===aType)&&(aCh==='all'||q.chapter===aCh);});}
+    else{qs=QDATA.filter(function(q){return ids.indexOf(String(q.id))>=0&&(aType==='all'||q.type===aType)&&(aCh==='all'||q.chapter===aCh);});}
+  }else{
+    qs=QDATA.filter(function(q){return(aType==='all'||q.type===aType)&&(aCh==='all'||q.chapter===aCh);});
+  }
+  if(!qs.length)qs=QDATA.slice();ci=Math.min(ci,qs.length-1);if(ci<0)ci=0;
+}
+
+function setType(t){aType=t;if(t!=='all')aCh='all';buildQs();rc();renderAll();ud();}
+function setCh(c){aCh=c;if(c!=='all')aType='all';buildQs();rc();renderAll();ud();}
+function rc(){ct();chosen=null;judging=false;flipped=false;}
+
+// ====== RENDER ======
+function renderAll(){renderCard();updateStats();ub();}
+function renderCard(){
+  rc();var q=qs[ci];if(!q)return;
+  document.getElementById('qtBadge').textContent=q.type;document.getElementById('qtBadge').className='qtype-badge '+TM[q.type];
+  document.getElementById('chBadge').textContent=q.chapter+(mode==='wrong'?' [错题库]':'');
+  document.getElementById('qtext').textContent=q.question;
+  document.getElementById('aText').innerHTML=fmt(q.answer);
+  var ap=document.getElementById('aPage');
+  if(q.chapter){var pt=PAGE_DATA.find(function(p){return p[0]===q.chapter;});if(pt){ap.style.display='';ap.innerHTML='📖 课本 '+pt[1]+'-'+pt[2]+'页 ('+pt[3]+'页)';}else{ap.style.display='none';}}else{ap.style.display='none';}
+  if(q.type==='判断题'){document.getElementById('optsBox').innerHTML='<button class="opt-btn" data-oi="0"><span class="ol">✓</span> 正确</button><button class="opt-btn" data-oi="1"><span class="ol">✗</span> 错误</button>';document.getElementById('optsBox').style.display='';document.getElementById('hintLine').textContent='点击判断，自动揭晓';}
+  else if(q.options){var opts=q.options.split(/[A-D]\.\s*/).filter(Boolean);var oh='';opts.forEach(function(o,i){oh+='<button class="opt-btn" data-oi="'+i+'"><span class="ol">'+String.fromCharCode(65+i)+'</span>'+o.trim()+'</button>';});document.getElementById('optsBox').innerHTML=oh;document.getElementById('optsBox').style.display='';document.getElementById('hintLine').textContent='点击选项作答 / 点击卡片翻转';}
+  else{document.getElementById('optsBox').innerHTML='';document.getElementById('optsBox').style.display='none';document.getElementById('hintLine').textContent='点击卡片 / 按空格 查看答案';document.getElementById('fillBlanks').style.display='none';document.getElementById('fillCheck').style.display='none';document.getElementById('fillScore').className='fill-score';if(q.type==='填空题'){var blanks=q.answer.split(';');var fb='';blanks.forEach(function(b,i){fb+='<div class=fill-row><span class=fill-num>'+(i+1)+'.</span><input class=fill-inp id=fillInp'+i+' placeholder=第'+(i+1)+'空></div>';});document.getElementById('fillBlanks').innerHTML=fb;document.getElementById('fillBlanks').style.display='';document.getElementById('fillCheck').style.display='';document.getElementById('hintLine').textContent='填写后点击提交填空核对答案';document.getElementById('optsBox').style.display='none';}else if(q.type==='问答题'){document.getElementById('qaArea').style.display='';document.getElementById('qaTA').value='';document.getElementById('qaSc').className='qa-sc';}else{document.getElementById('qaArea').style.display='none';}}
+  document.getElementById('frontFace').classList.remove('hidden');document.getElementById('backFace').classList.add('hidden');
+  document.getElementById('flashcard').className='flashcard';document.getElementById('fbRing').className='feedback-ring';
+  document.getElementById('cardArea').scrollTop=0;ub();
+}
+
+function fmt(t){return t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');}
+function ub(){
+  var q=qs[ci];var isI=q&&(q.type==='单选题'||q.type==='判断题');var en=flipped&&!isI&&qs.length>0;
+  var bok=document.getElementById('btnOk'),bno=document.getElementById('btnNo');
+  if(bok){bok.disabled=!en;bok.style.display=isI?'none':'';}
+  if(bno){bno.disabled=!en;bno.style.display=isI?'none':'';}
+}
+
+// ====== CARD TAP ======
+function onFrontTap(e){e.stopPropagation();if(judging||timer)return;var t=e.target;if(t.tagName==='INPUT'||t.tagName==='TEXTAREA')return;var b=t.closest('button.opt-btn');if(b){if(chosen!==null)return;choiceSel(b);return;}doFlip();}
+function onBackTap(e){e.stopPropagation();if(judging||timer)return;if(qs[ci]&&qs[ci].type==='判断题'&&chosen!==null){nextQ();return;}if(chosen!==null)return;doFlip();}
+function choiceSel(btn){
+  if(judging||chosen!==null)return;var idx=parseInt(btn.dataset.oi);chosen=idx;judging=true;
+  var btns=document.querySelectorAll('.opt-btn');btns.forEach(function(b,i){b.classList.add('disabled');if(i===idx)b.classList.add('sel');else b.classList.add('rn');});
+  timer=setTimeout(function(){
+    document.getElementById('frontFace').classList.add('hidden');document.getElementById('backFace').classList.remove('hidden');document.getElementById('cardArea').scrollTop=0;flipped=true;
+    var q=qs[ci],correctIdx;
+    if(q.type==='判断题')correctIdx=q.answer.indexOf('✓')===0?0:1;
+    else{var m=q.answer.match(/^([A-D])\./);correctIdx=m?m[1].charCodeAt(0)-65:-1;}
+    var ok=(idx===correctIdx),fc=document.getElementById('flashcard'),ring=document.getElementById('fbRing');
+    if(ok){fc.className='flashcard correct';ring.className='feedback-ring good show';ring.textContent='✓';hist[q.id]='correct';streak++;btns[idx].classList.add('rc');}
+    else{fc.className='flashcard wrong';ring.className='feedback-ring bad show';ring.textContent='✗';hist[q.id]='wrong';streak=0;btns[idx].classList.add('rw');if(correctIdx>=0)btns[correctIdx].classList.add('rc');}
+    sh();updateStats();ud();ub();
+    timer=setTimeout(function(){ring.className='feedback-ring';fc.className='flashcard';judging=false;timer=null;},800);
+  },400);
+}
+function doFlip(){
+  if(!qs.length||judging||timer)return;var q=qs[ci];
+  if((q.type==='单选题'||q.type==='判断题')&&chosen===null){flipped=!flipped;if(flipped){document.getElementById('frontFace').classList.add('hidden');document.getElementById('backFace').classList.remove('hidden');}else{document.getElementById('frontFace').classList.remove('hidden');document.getElementById('backFace').classList.add('hidden');}ub();return;}
+  if(q.type!=='单选题'&&q.type!=='判断题'){flipped=!flipped;if(flipped){document.getElementById('frontFace').classList.add('hidden');document.getElementById('backFace').classList.remove('hidden');}else{document.getElementById('frontFace').classList.remove('hidden');document.getElementById('backFace').classList.add('hidden');}ub();}
+}
+
+// ====== MARK ======
+function doMark(ok){
+  if(!flipped||!qs.length||timer||judging)return;var q=qs[ci];if(q.type==='单选题'||q.type==='判断题')return;
+  judging=true;ct();var fc=document.getElementById('flashcard'),ring=document.getElementById('fbRing');
+  if(ok){ring.className='feedback-ring good show';ring.textContent='✓';fc.className='flashcard correct';hist[q.id]='correct';streak++;}
+  else{ring.className='feedback-ring bad show';ring.textContent='✗';fc.className='flashcard wrong';hist[q.id]='wrong';streak=0;}
+  sh();updateStats();ud();ub();
+  timer=setTimeout(function(){ring.className='feedback-ring';fc.className='flashcard';judging=false;timer=null;nextQ();},500);
+}
+function updateStats(){
+  var tot=qs.length,ans=qs.filter(function(q){return hist[q.id];}).length,ok=qs.filter(function(q){return hist[q.id]==='correct';}).length,no=QDATA.filter(function(q){return hist[q.id]==='wrong';}).length;
+  document.getElementById('stRemain').textContent=tot-ans;document.getElementById('stCorrect').textContent=ok;document.getElementById('stAcc').textContent=ans>0?Math.round(ok/ans*100)+'%':'-';document.getElementById('stReview').textContent=no;
+}
+
+// ====== QA SCORING ======
+function submitQA(e){e.stopPropagation();var q=qs[ci];if(!q||q.type!=='问答题')return;var t=document.getElementById('qaTA').value.trim();if(!t){alert('请先输入答案！');return;}scoreIt(t,q,'qaSc');}
+function scoreIt(txt,q,sid){
+  var kw=q.keywords||[];if(!kw.length)return;var hit=[],miss=[];kw.forEach(function(k){if(txt.indexOf(k)>=0)hit.push(k);else miss.push(k);});
+  var pct=Math.round(hit.length/kw.length*100),cl=pct>=70?'#4caf50':pct>=40?'#ff9800':'#e74c3c';
+  var el=document.getElementById(sid);el.innerHTML='<div style=font-weight:700>得分:<span style=color:'+cl+'>'+hit.length+'/'+kw.length+'('+pct+'%)</span></div>'+(hit.length?'<div style=margin-top:4px><span class=qa-hit>'+hit.join(' ✓ ')+'</span></div>':'')+(miss.length?'<div style=margin-top:4px><span class=qa-miss>'+miss.join(' ✗ ')+'</span></div>':'')+'<div class=qa-bar-outer><div class=qa-bar-inner style=width:'+pct+'%;background:'+cl+'></div></div><div style=font-size:11px;color:var(--tl);margin-top:4px>点击卡片/空格查看完整参考答案</div>';el.className='qa-sc show';
+  var ok=pct>=60;if(!hist[q.id]){hist[q.id]=ok?'correct':'wrong';if(ok)streak++;else streak=0;sh();updateStats();ud();}
+}
+
+
+// ====== FILL-BLANK CHECKING ======
+function checkFills(e){
+  e.stopPropagation();
+  var q=qs[ci];if(!q||q.type!=='填空题')return;
+  var blanks=q.answer.split(';');var correct=0,total=blanks.length;
+  blanks.forEach(function(ans,i){
+    var inp=document.getElementById('fillInp'+i);if(!inp)return;
+    var val=inp.value.trim().replace(/\s+/g,'');
+    var exp=ans.trim().replace(/\s+/g,'');
+    var terms=exp.split(/[、，,。\.]/).filter(function(t){return t.length>=2;});
+    if(terms.length<1)terms=[exp];
+    var hit=terms.some(function(t){return val.indexOf(t)>=0;});
+    if(hit||val===exp||(exp.length>8&&val.length>=exp.length*0.5&&exp.indexOf(val)>=0)){
+      inp.classList.add('ok');inp.classList.remove('bad');correct++;
+    }else{inp.classList.add('bad');inp.classList.remove('ok');}
+  });
+  var pct=Math.round(correct/total*100),cl=pct>=70?'#4caf50':pct>=40?'#ff9800':'#e74c3c';
+  var el=document.getElementById('fillScore');
+  el.innerHTML='<div style=font-weight:700>填空得分:<span style=color:'+cl+'>'+correct+'/'+total+'('+pct+'%)</span></div><div class=qa-bar-outer><div class=qa-bar-inner style=width:'+pct+'%;background:'+cl+'></div></div><div style=font-size:11px;color:var(--tl);margin-top:4px>点击卡片/空格查看完整参考答案</div>';
+  el.className='fill-score show';
+  var ok=pct>=60;
+  if(!hist[q.id]){hist[q.id]=ok?'correct':'wrong';if(ok)streak++;else streak=0;sh();updateStats();ud();}
+}
+
+// ====== NAV ======
+function nextQ(){if(!qs.length)return;ci=(ci+1)%qs.length;rc();renderAll();}
+function prevQ(){if(ci>0){ci--;rc();renderAll();}}
+function randQ(){if(!qs.length)return;ci=Math.floor(Math.random()*qs.length);rc();renderAll();}
+function jumpTo(i){ci=i;rc();renderAll();}
+
+// ====== DRAWER ======
+function openDrawer(){document.getElementById('overlay').classList.add('open');document.getElementById('drawer').classList.add('open');ud();}
+function closeDrawer(){document.getElementById('overlay').classList.remove('open');document.getElementById('drawer').classList.remove('open');}
+function drToggle(id){var b=document.getElementById(id+'Body'),t=document.querySelector('#'+id+' .dr-section-title');if(b.classList.contains('open')){b.classList.remove('open');t.classList.remove('open');}else{b.classList.add('open');t.classList.add('open');}}
+
+function ud(){
+  var tot=qs.length,ok=qs.filter(function(q){return hist[q.id]==='correct';}).length,no=qs.filter(function(q){return hist[q.id]==='wrong';}).length;
+  document.getElementById('dsOk').textContent=ok;document.getElementById('dsNo').textContent=no;document.getElementById('dsTodo').textContent=tot-ok-no;
+  var pct=tot>0?Math.round((ok+no)/tot*100):0;document.getElementById('dsPct').textContent=pct+'%';document.getElementById('dsBar').style.width=pct+'%';
+  document.getElementById('drBankCnt').textContent='('+tot+'题)';
+  var allWrong=QDATA.filter(function(q){return hist[q.id]==='wrong';}).length;
+  var rwBtn=document.getElementById('drReviewWrong');
+  if(allWrong>0){rwBtn.style.display='';rwBtn.innerHTML='<span class="icon">&#128260;</span> 只练错题 ('+allWrong+'题)';}else{rwBtn.style.display='none';}
+  if(mode==='wrong')rwBtn.classList.add('active');else rwBtn.classList.remove('active');
+
+  // Type chips
+  var tc=document.getElementById('drTypeChips');
+  tc.innerHTML='<button class="dr-chip'+(aType==='all'&&mode!=='wrong'?' on':'')+'" onclick="drSetType(\'all\');closeDrawer()">全部</button>';
+  TP.forEach(function(t){
+    var n=QDATA.filter(function(q){return q.type===t&&(mode!=='wrong'||hist[q.id]==='wrong');}).length;
+    if(n>0)tc.innerHTML+='<button class="dr-chip'+(aType===t&&mode!=='wrong'?' on':'')+'" onclick="drSetType(\''+t+'\');closeDrawer()">'+t+'('+n+')</button>';
+  });
+
+  // Chapter nav
+  var CH=[];
+  QDATA.forEach(function(q){if(CH.indexOf(q.chapter)<0)CH.push(q.chapter);});
+  var fm={"苏铁科":"总论-裸子植物","银杏科":"总论-裸子植物","南洋杉科":"总论-裸子植物","松科":"总论-裸子植物","杉科":"总论-裸子植物","柏科":"总论-裸子植物","罗汉松科":"总论-裸子植物","三尖杉科":"总论-裸子植物","红豆杉科":"总论-裸子植物","木兰科":"木兰科-金缕梅科","樟科":"木兰科-金缕梅科","蔷薇科":"木兰科-金缕梅科","苏木科":"木兰科-金缕梅科","含羞草科":"木兰科-金缕梅科","蝶形花科":"木兰科-金缕梅科","金缕梅科":"木兰科-金缕梅科","杨柳科":"杨柳科-桃金娘科","壳斗科":"杨柳科-桃金娘科","胡桃科":"杨柳科-桃金娘科","木麻黄科":"杨柳科-桃金娘科","榆科":"杨柳科-桃金娘科","桑科":"杨柳科-桃金娘科","梧桐科":"杨柳科-桃金娘科","大戟科":"杨柳科-桃金娘科","山茶科":"杨柳科-桃金娘科","桃金娘科":"杨柳科-桃金娘科","红树科":"红树科-竹亚科","芸香科":"红树科-竹亚科","楝科":"红树科-竹亚科","无患子科":"红树科-竹亚科","漆树科":"红树科-竹亚科","木犀科":"红树科-竹亚科","茜草科":"红树科-竹亚科","马鞭草科":"红树科-竹亚科","棕榈科":"红树科-竹亚科","竹亚科":"红树科-竹亚科"};
+  var ch='';var seen={};var chapCnt={};
+  QDATA.forEach(function(q){var bc=fm[q.chapter]||'';if(bc)chapCnt[bc]=(chapCnt[bc]||0)+1;});
+  PAGE_DATA.forEach(function(p){
+    var fn=p[0],bc=fm[fn]||'';
+    if(!seen[bc]){seen[bc]=true;var cnt=chapCnt[bc]||0;ch+='<button class=\"q-nav-btn\" style=\"grid-column:1/-1;background:var(--g0);font-weight:700;font-size:11px\" onclick=\"drSetCh(\\''+bc+'\\');closeDrawer()\">'+bc+' ('+cnt+'题)</button>';}
+    var n=QDATA.filter(function(q){return q.chapter===bc;}).length;
+    ch+='<button class=\"q-nav-btn'+(aCh===bc?' current':'')+'\" onclick=\"drSetCh(\\''+bc+'\\');closeDrawer()\" title=\"课本p'+p[1]+'-'+p[2]+'\">'+fn+'</button>';
+  });
+  document.getElementById('dsChapters').innerHTML=ch||'<div style=\"font-size:10px;color:var(--tl)\">暂无</div>';
+
+  // Question grid
+  var qh='';qs.forEach(function(q,i){var cls='q-nav-btn';if(i===ci)cls+=' current';var dot='dot';if(hist[q.id]==='correct')dot+=' ok';if(hist[q.id]==='wrong')dot+=' no';if(i===ci)dot+=' cur';qh+='<button class="'+cls+'" data-qi="'+i+'"><span class="'+dot+'"></span>'+LM[q.type]+(i+1)+' '+q.question.substring(0,10)+'</button>';});
+  document.getElementById('dsAllQ').innerHTML=qh||'<div style="font-size:10px;color:var(--tl)">暂无</div>';
+}
+
+function drSetType(t){
+  mode='all';aType=t;aCh='all';buildQs();rc();renderAll();ud();
+}
+function drSetCh(c){
+  mode='all';aCh=c;aType='all';buildQs();rc();renderAll();ud();
+}
+function startWrongMode(){
+  var ids=Object.keys(hist).filter(function(k){return hist[k]==='wrong';});
+  if(!ids.length){alert('暂无错题！');return;}
+  mode='wrong';aType='all';aCh='all';buildQs();ci=0;rc();renderAll();ud();
+}
+
+// ====== EXAM MODE ======
+var examQ=[],examIdx=0,examHist={},eJudging=false,eChosen=null,eTimer=null;
+var EX={names:5,fills:10,choices:10,judges:10,qas:5};
+
+function startExam(){
+  if(!confirm('开始模拟考试？\n题型:名词解释5+填空10+单选10+判断10+问答5=40题\n（与真实考试题型一致）'))return;
+  closeDrawer();
+  document.getElementById('actionsBar').style.display='none';
+  var pool={};TP.forEach(function(t){pool[t]=[];});QDATA.forEach(function(q){if(pool[q.type])pool[q.type].push(q);});
+  function pick(arr,n){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a.slice(0,n);}
+  examQ=[];examQ=examQ.concat(pick(pool['名词解释']||[],EX.names)).concat(pick(pool['填空题']||[],EX.fills)).concat(pick(pool['单选题']||[],EX.choices)).concat(pick(pool['判断题']||[],EX.judges)).concat(pick(pool['问答题']||[],EX.qas));
+  examIdx=0;examHist={};eJudging=false;eChosen=null;
+  document.getElementById('flashcard').innerHTML='<div class="card-face front" id="eFront" onclick="eTap(event)"><span class="qtype-badge" id="eBadge"></span><span class="ch-badge" id="eCh"></span><div style="font-size:11px;color:var(--tl);margin-bottom:8px" id="eProg"></div><div class="qtext" id="eQ"></div><div class="opts" id="eOpts"></div><div class="hint" id="eHint">点击卡片/空格 查看答案</div></div><div class="card-face back hidden" id="eBack" onclick="eTap(event)"><div class="a-label">参考答案</div><div class="a-text" id="eA"></div><div class="a-hint">点击卡片/空格 返回，点答对/需复习继续</div></div><div class="feedback-ring" id="eRing"></div>';
+  document.getElementById('actionsBar').style.display='flex';
+  document.getElementById('actionsBar').innerHTML='<button class="btn btn-ok" id="eOk" disabled>答对了</button><button class="btn btn-no" id="eNo" disabled>需复习</button><button class="btn btn-next" id="eNext">下一题</button><button class="btn" onclick="submitExam()" style="background:linear-gradient(135deg,#c0392b,#e74c3c);color:white">交卷</button>';
+  document.getElementById('eOk').onclick=function(){eMark(true);};document.getElementById('eNo').onclick=function(){eMark(false);};document.getElementById('eNext').onclick=function(){eNextQ();};
+  eRender();eStats();
+}
+function eRender(){
+  var q=examQ[examIdx];if(!q)return;eJudging=false;document.getElementById('eBadge').textContent=q.type;document.getElementById('eBadge').className='qtype-badge '+TM[q.type];document.getElementById('eCh').textContent=q.chapter;document.getElementById('eQ').textContent=q.question;document.getElementById('eA').innerHTML=fmt(q.answer);document.getElementById('eProg').textContent='第'+(examIdx+1)+'/'+examQ.length+'题  '+q.type;
+  if(q.type==='判断题'){document.getElementById('eOpts').innerHTML='<button class="opt-btn" data-oi="0"><span class="ol">✓</span> 正确</button><button class="opt-btn" data-oi="1"><span class="ol">✗</span> 错误</button>';document.getElementById('eOpts').style.display='';document.getElementById('eHint').textContent='点击判断';}
+  else if(q.options){var opts=q.options.split(/[A-D]\.\s*/).filter(Boolean);var oh='';opts.forEach(function(o,i){oh+='<button class="opt-btn" data-oi="'+i+'"><span class="ol">'+String.fromCharCode(65+i)+'</span>'+o.trim()+'</button>';});document.getElementById('eOpts').innerHTML=oh;document.getElementById('eOpts').style.display='';document.getElementById('eHint').textContent='点击选项作答';}
+  else{document.getElementById('eOpts').innerHTML='';document.getElementById('eOpts').style.display='none';document.getElementById('eHint').textContent='点击卡片/空格查看答案';}
+  document.getElementById('eFront').classList.remove('hidden');document.getElementById('eBack').classList.add('hidden');document.getElementById('cardArea').scrollTop=0;eUb();
+}
+function eTap(e){e.stopPropagation();var b=e.target.closest('button.opt-btn');if(b){eChoice(b);return;}var q=examQ[examIdx];if(!q.options&&q.type!=='判断题'){if(document.getElementById('eBack').classList.contains('hidden')){document.getElementById('eFront').classList.add('hidden');document.getElementById('eBack').classList.remove('hidden');}else{document.getElementById('eFront').classList.remove('hidden');document.getElementById('eBack').classList.add('hidden');}eUb();}}
+function eChoice(btn){
+  if(eJudging)return;eJudging=true;var idx=parseInt(btn.dataset.oi);
+  var btns=document.querySelectorAll('#flashcard .opt-btn');btns.forEach(function(b,i){b.classList.add('disabled');if(i===idx)b.classList.add('sel');else b.classList.add('rn');});
+  eTimer=setTimeout(function(){
+    document.getElementById('eFront').classList.add('hidden');document.getElementById('eBack').classList.remove('hidden');document.getElementById('cardArea').scrollTop=0;
+    var q=examQ[examIdx],correctIdx;
+    if(q.type==='判断题')correctIdx=q.answer.indexOf('✓')===0?0:1;
+    else{var m=q.answer.match(/^([A-D])\./);correctIdx=m?m[1].charCodeAt(0)-65:-1;}
+    var ok=(idx===correctIdx);
+    if(ok){examHist[examIdx]='correct';document.getElementById('flashcard').className='flashcard correct';btns[idx].classList.add('rc');}else{examHist[examIdx]='wrong';document.getElementById('flashcard').className='flashcard wrong';btns[idx].classList.add('rw');if(correctIdx>=0)btns[correctIdx].classList.add('rc');}
+    eStats();eUb();setTimeout(function(){document.getElementById('flashcard').className='flashcard';eJudging=false;},600);
+  },400);
+}
+function eMark(ok){var q=examQ[examIdx];if(q.options||q.type==='判断题')return;if(document.getElementById('eBack').classList.contains('hidden'))return;examHist[examIdx]=ok?'correct':'wrong';eStats();eNextQ();}
+function eNextQ(){if(examIdx<examQ.length-1){examIdx++;eRender();eStats();}else{submitExam();}}
+function eUb(){var q=examQ[examIdx],isI=q&&(q.options||q.type==='判断题'),vis=!document.getElementById('eBack').classList.contains('hidden');document.getElementById('eOk').disabled=!(vis&&!isI);document.getElementById('eNo').disabled=!(vis&&!isI);document.getElementById('eOk').style.display=isI?'none':'';document.getElementById('eNo').style.display=isI?'none':'';}
+function eStats(){var tot=examQ.length,ans=Object.keys(examHist).length,ok=Object.values(examHist).filter(function(v){return v==='correct';}).length;document.getElementById('stRemain').textContent=tot-ans;document.getElementById('stCorrect').textContent=ok;document.getElementById('stAcc').textContent=ans>0?Math.round(ok/ans*100)+'%':'-';}
+
+function submitExam(){
+  var tot=examQ.length,ans=Object.keys(examHist).length,ok=Object.values(examHist).filter(function(v){return v==='correct';}).length,score=Math.round(ok/tot*100);if(isNaN(score))score=0;
+  alert('考试结束!\n得分:'+score+'分('+ok+'/'+tot+')');
+  mode='all';aType='all';aCh='all';buildQs();rc();renderAll();ud();
+  document.getElementById('actionsBar').innerHTML='<button class="btn btn-ok" id="btnOk" disabled>答对了</button><button class="btn btn-no" id="btnNo" disabled>需复习</button><button class="btn btn-next" id="btnNext">下一题</button><button class="btn btn-rand" id="btnRand">随机</button>';
+  document.getElementById('actionsBar').style.display='';
+  setupMainBtns();
+}
+
+// ====== VIEWER ======
+function showPageTable(){
+  var h='<h3 style="font-size:16px;margin-bottom:12px">36科 - 课本页码对照表</h3><p style="font-size:12px;opacity:.7;margin-bottom:12px">《树木学(南方本)》祁承经、汤庚国 | 上册p28-320 | 下册p321-609</p>';
+  h+='<table class="page-tbl"><tr><th>#</th><th>科名</th><th>起始页</th><th>结束页</th><th>页数</th></tr>';
+  PAGE_DATA.forEach(function(p,i){h+='<tr><td>'+(i+1)+'</td><td>'+p[0]+'</td><td>'+p[1]+'</td><td>'+p[2]+'</td><td>'+p[3]+'</td></tr>';});
+  h+='</table><p style="font-size:10px;opacity:.5;margin-top:12px;text-align:center">共36科 582页</p>';
+  document.getElementById('vwrTitle').textContent='课本页码对照表';document.getElementById('vwrBody').innerHTML=h;document.getElementById('vwrOverlay').classList.add('open');
+}
+function showKeys(){
+  var h='<h3 style="font-size:16px;margin-bottom:8px">编制检索表练习</h3><p style="font-size:11px;opacity:.7;margin-bottom:14px">考试分值:10分 | 10个物种 | 定距格式 | 建议优先裸子/被子、双子叶/单子叶、科特征编排</p>';
+  KEY_DATA.forEach(function(k,i){h+='<div style="background:rgba(255,255,255,.08);border-radius:8px;padding:12px;margin-bottom:10px"><h4 style="font-size:13px;margin-bottom:4px">'+(i+1)+'. '+k.title+'</h4><p style="font-size:10px;opacity:.7;margin-bottom:6px">物种:'+k.species+'</p><pre style="font-size:10px;line-height:1.6;white-space:pre-wrap">'+k.key+'</pre></div>';});
+  document.getElementById('vwrTitle').textContent='检索表练习';document.getElementById('vwrBody').innerHTML=h;document.getElementById('vwrOverlay').classList.add('open');
+}
+function closeViewer(){document.getElementById('vwrOverlay').classList.remove('open');}
+
+// ====== SETUP ======
+function setupMainBtns(){
+  document.getElementById('btnOk').onclick=function(){doMark(true);};
+  document.getElementById('btnNo').onclick=function(){doMark(false);};
+  document.getElementById('btnNext').onclick=function(){nextQ();};
+  document.getElementById('btnRand').onclick=function(){randQ();};
+}
+function setupDrawer(){
+  document.getElementById('drExam').onclick=function(){startExam();};
+  document.getElementById('drReviewWrong').onclick=function(){startWrongMode();closeDrawer();};
+  document.getElementById('drShuffle').onclick=function(){mode='all';aType='all';aCh='all';buildQs();for(var i=qs.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=qs[i];qs[i]=qs[j];qs[j]=t;}ci=0;hist={};streak=0;sh();rc();renderAll();closeDrawer();};
+  document.getElementById('drPageTable').onclick=function(){showPageTable();};
+  document.getElementById('drKeys').onclick=function(){showKeys();};
+  document.getElementById('drReset').onclick=function(){if(confirm('确定重置所有学习进度？')){hist={};streak=0;mode='all';aType='all';aCh='all';buildQs();ci=0;sh();rc();renderAll();ud();closeDrawer();}};
+  document.getElementById('drawer').addEventListener('click',function(e){
+    var b=e.target.closest('button[data-qi]');if(b){jumpTo(parseInt(b.dataset.qi));closeDrawer();}
+  });
+}
+
+// ====== INIT ======
+function setupKB(){
+  document.addEventListener('keydown',function(e){
+    if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+    switch(e.code){
+      case 'Space':e.preventDefault();if(!judging&&!timer)doFlip();break;
+      case 'ArrowRight':e.preventDefault();nextQ();break;
+      case 'ArrowLeft':e.preventDefault();prevQ();break;
+      case 'Digit1':case 'KeyA':if(flipped&&!judging){e.preventDefault();doMark(true);}break;
+      case 'Digit2':case 'KeyD':if(flipped&&!judging){e.preventDefault();doMark(false);}break;
+      case 'KeyR':if(!e.ctrlKey){e.preventDefault();randQ();}break;
+    }
+  });
+}
+function setupSwipe(){
+  var sx=0,sy=0;
+  document.getElementById('cardArea').addEventListener('touchstart',function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  document.getElementById('cardArea').addEventListener('touchend',function(e){
+    if(judging||timer)return;var dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)){if(dx<0)nextQ();else prevQ();}
+  });
+}
+
+function init(){
+  lh();mode='all';aType='all';aCh='all';buildQs();setupMainBtns();setupDrawer();renderAll();ud();setupKB();setupSwipe();
+}
+init();
+</script>
+</body>
+</html>
