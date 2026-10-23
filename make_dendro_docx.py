@@ -345,6 +345,6 @@ p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 run = p.add_run('\n— 福建农林大学 林学院 树木学教研室 —')
 run.font.size = Pt(9)
 
-out_path = r"C:\Users\LIHAOYANG\Desktop\树木学_期末冲刺复习提纲.docx"
+out_path = os.path.join(os.path.expanduser("~"), "Desktop", "树木学_期末冲刺复习提纲.docx")
 doc.save(out_path)
 print(f"Done: {out_path} ({os.path.getsize(out_path):,} bytes)")
